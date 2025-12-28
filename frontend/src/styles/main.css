@@ -1,0 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap');
+
+
+/* 1. Core Settings */
+@import './core/variables.css';
+@import './core/base.css';
+
+/* 2. Layout & Responsive */
+@import './layout/grid.css';
+@import './layout/responsive.css';
+
+/* 3. Visual Effects */
+@import './effects/hologram.css';
+@import './effects/animations.css';
+
+/* 4. UI Components */
+@import './components/navbar.css';
+@import './components/sidebar.css';
+@import './components/cards.css';
+@import './components/forms.css';
