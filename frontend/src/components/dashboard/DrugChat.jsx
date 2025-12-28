@@ -1,20 +1,19 @@
 import React, { useState } from 'react';
-import { Send, Sparkles, MessageSquare, Loader } from 'lucide-react';
+import { Send, Sparkles, Loader, Search } from 'lucide-react';
 import { apiClient } from '../../api/client';
 
-export default function DrugChat({ result }) {
+export default function DrugChat({ result, compact = false, onResponse }) {
   const [query, setQuery] = useState("");
-  const [response, setResponse] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   const handleAsk = async (e) => {
     e.preventDefault();
     if (!query.trim()) return;
 
     setLoading(true);
-    setResponse(null);
+    if (onResponse) onResponse(null);
 
-    // Prepare Context (Jo data backend ko bhejna hai)
     const context = {
       name: result.name,
       smiles: result.smiles,
@@ -23,89 +22,112 @@ export default function DrugChat({ result }) {
       active_sites: result.active_sites
     };
 
-    const res = await apiClient.askDrugAI(query, context);
-    setResponse(res.answer);
+    try {
+        const res = await apiClient.askDrugAI(query, context);
+        if (onResponse) onResponse(res.answer);
+    } catch (err) {
+        if (onResponse) onResponse("Error: Could not connect to AI.");
+    }
+    
     setLoading(false);
+    setQuery("");
   };
 
+  // ✨ NEW DESIGN STYLE
   return (
-    <div style={{ width: '100%', maxWidth: '700px', margin: '30px auto 10px auto' }}>
+    <div style={{ 
+      width: '100%', 
+      maxWidth: compact ? '100%' : '700px', 
+      margin: compact ? '0' : '30px auto',
+      position: 'relative',
+      zIndex: 100
+    }}>
       
-      {/* Search Bar Container */}
       <form onSubmit={handleAsk} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
         
-        <div style={{ position: 'absolute', left: '15px', color: '#00f3ff' }}>
-          <Sparkles size={18} className="animate-pulse" />
+        {/* Animated Icon Container */}
+        <div style={{ 
+          position: 'absolute', left: '20px', 
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: isFocused ? '#00f3ff' : '#666',
+          transition: 'all 0.4s ease',
+          pointerEvents: 'none',
+          filter: isFocused ? 'drop-shadow(0 0 5px #00f3ff)' : 'none'
+        }}>
+          {loading ? <Loader size={18} className="spin" /> : <Sparkles size={18} />}
         </div>
 
+        {/* The Input Field */}
         <input 
           type="text" 
-          placeholder={`Ask AI about ${result.name || 'this drug'}...`}
+          placeholder={loading ? "Llama 3 is analyzing..." : "Ask Llama 3 about this drug..."} 
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          disabled={loading}
           style={{
             width: '100%',
-            padding: '14px 50px 14px 45px',
-            background: 'rgba(0, 0, 0, 0.4)',
-            border: '1px solid rgba(0, 243, 255, 0.3)',
-            borderRadius: '50px',
+            height: '50px',
+            padding: '0 60px 0 55px', // Space for icons
+            
+            // 🔥 Background & Border Styling
+            background: 'linear-gradient(90deg, rgba(20,20,30,0.8), rgba(10,10,20,0.95))',
+            border: '1px solid',
+            borderColor: isFocused ? '#00f3ff' : 'rgba(255,255,255,0.1)',
+            borderRadius: '16px', // Slightly squared for tech look
+            
+            // Text Styling
             color: '#fff',
             fontSize: '14px',
+            letterSpacing: '0.5px',
             outline: 'none',
-            backdropFilter: 'blur(10px)',
-            transition: 'all 0.3s ease',
-            boxShadow: '0 0 15px rgba(0, 243, 255, 0.05)'
-          }}
-          onFocus={(e) => {
-            e.target.style.borderColor = '#00f3ff';
-            e.target.style.boxShadow = '0 0 25px rgba(0, 243, 255, 0.15)';
-          }}
-          onBlur={(e) => {
-            e.target.style.borderColor = 'rgba(0, 243, 255, 0.3)';
-            e.target.style.boxShadow = '0 0 15px rgba(0, 243, 255, 0.05)';
+            
+            // ✨ Glow Effects
+            boxShadow: isFocused 
+              ? '0 0 30px rgba(0, 243, 255, 0.15), inset 0 0 20px rgba(0, 243, 255, 0.05)' 
+              : '0 5px 15px rgba(0,0,0,0.2)',
+            
+            transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
           }}
         />
 
+        {/* Send Button */}
         <button 
           type="submit" 
-          disabled={loading}
+          disabled={loading || !query.trim()}
           style={{
-            position: 'absolute', right: '8px',
-            background: 'linear-gradient(135deg, #00f3ff, #0066ff)',
-            border: 'none', borderRadius: '50%',
-            width: '36px', height: '36px',
+            position: 'absolute', right: '10px',
+            height: '36px', width: '36px',
+            borderRadius: '12px',
+            border: 'none',
+            background: query.trim() ? '#00f3ff' : 'rgba(255,255,255,0.05)',
+            color: query.trim() ? '#000' : '#444',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            opacity: loading ? 0.7 : 1,
-            transition: 'transform 0.2s'
+            cursor: query.trim() ? 'pointer' : 'default',
+            transition: 'all 0.3s ease',
+            transform: query.trim() && !loading ? 'scale(1)' : 'scale(0.9)',
+            boxShadow: query.trim() ? '0 0 15px rgba(0, 243, 255, 0.5)' : 'none'
           }}
-          onMouseEnter={(e) => !loading && (e.currentTarget.style.transform = 'scale(1.1)')}
-          onMouseLeave={(e) => !loading && (e.currentTarget.style.transform = 'scale(1)')}
         >
-          {loading ? <Loader size={16} className="spin" color="#000" /> : <Send size={16} color="#000" />}
+          <Send size={16} />
         </button>
 
       </form>
 
-      <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
-
-      {/* Answer Area (Chat Bubble) */}
-      {response && (
-        <div className="fade-in-text" style={{ 
-          marginTop: '15px', 
-          padding: '15px 20px', 
-          background: 'rgba(255, 255, 255, 0.05)', 
-          borderLeft: '3px solid #00f3ff', 
-          borderRadius: '0 12px 12px 0',
-          display: 'flex', gap: '12px'
-        }}>
-          <div style={{ marginTop: '2px' }}><MessageSquare size={18} color="#00f3ff" /></div>
-          <div style={{ color: '#ddd', fontSize: '13px', lineHeight: '1.5' }}>
-            {response}
-          </div>
-        </div>
-      )}
-
+      {/* Placeholder Animation */}
+      <style>{`
+        .spin { animation: spin 1s linear infinite; } 
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        input::placeholder {
+          color: rgba(255, 255, 255, 0.3);
+          transition: color 0.3s ease;
+        }
+        input:focus::placeholder {
+          color: rgba(0, 243, 255, 0.5);
+        }
+      `}</style>
     </div>
   );
 }

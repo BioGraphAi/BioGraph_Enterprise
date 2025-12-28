@@ -1,7 +1,7 @@
 import React from 'react';
 import { FileText, Box, Download, Loader } from 'lucide-react';
 
-export default function ActionButtons({ result, onView, on3D, onDownload, downloading }) {
+export default function ActionButtons({ result, onView, on3D, onDownload, downloading, layout = 'column' }) {
   
   // Internal Style Helper
   const buttonStyle = (color) => ({
@@ -23,7 +23,11 @@ export default function ActionButtons({ result, onView, on3D, onDownload, downlo
   });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div style={{ 
+      display: 'flex', 
+      flexDirection: layout, // ✅ Layout prop control karega (row/column)
+      gap: '8px' 
+    }}>
             
       {/* VIEW Button */}
       {result.admet && (

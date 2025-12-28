@@ -1,5 +1,5 @@
 .result-card {
-  position: absolute; bottom: 15px; left: 440px; right: 20px; width: 65%; max-width: none;
+  position: absolute; bottom: 45px; left: 455px; right: 20px; width: 65%; max-width: none;
   background: rgba(10,10,15,0.95); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
   border: 1px solid rgba(0,243,255,0.3); border-radius: 20px; padding: 15px 40px;
   display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); z-index: 50;

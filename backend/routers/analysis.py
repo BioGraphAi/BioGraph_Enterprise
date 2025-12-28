@@ -12,15 +12,11 @@ from rdkit import Chem
 
 # Modules
 from modules.ai_model import load_ai_model, DEVICE
-# ✅ Added get_pharmacophore_data here
 from modules.chemistry import get_protein_sequence, process_data_object, get_smiles_from_input, get_pharmacophore_data
 from modules.database import get_all_drugs
 from modules.admet import calculate_admet_properties
 from modules.utils import calculate_confidence
 from modules.state import SCAN_PROGRESS 
-# ✅ Added LLM Engine here
-from modules.llm_engine import generate_scientific_explanation
-# 'chat_with_drug_data' ko import mein add karein
 from modules.llm_engine import generate_scientific_explanation, chat_with_drug_data
 
 router = APIRouter()
@@ -54,6 +50,19 @@ async def analyze_drug(request: DrugAnalysisRequest):
         if not real_smiles or not mol:
             return {"error": f"Could not find structure for '{request.smiles}'."}
 
+        # ✅ LOGIC: Name vs SMILES Auto-Detection
+        # Agar input aur real_smiles same hain, iska matlab user ne SMILES dala hai.
+        # Toh hum Name ko "Custom Ligand" ya "Molecule-X" set karenge.
+        # Agar different hain, toh user ne Name (e.g. Panadol) dala tha.
+        
+        display_name = request.smiles
+        if request.smiles == real_smiles:
+             # User entered SMILES -> Auto Generate Name
+             display_name = f"Custom Ligand {str(int(time.time()))[-4:]}"
+        else:
+             # User entered Name -> SMILES is already in real_smiles
+             display_name = request.smiles
+
         score = 0.0
         status = "UNKNOWN"
         data = process_data_object(real_smiles, protein_seq)
@@ -71,12 +80,12 @@ async def analyze_drug(request: DrugAnalysisRequest):
         admet_data = calculate_admet_properties(mol)
         confidence_val = calculate_confidence(score, threshold=7.5)
 
-        # ✅ 2. Calculate Pharmacophores (Real Science)
+        # 2. Calculate Pharmacophores
         pharmacophore_data = get_pharmacophore_data(mol)
 
-        # ✅ 3. Generate AI Explanation (LLM)
+        # 3. Generate AI Explanation
         ai_explanation = generate_scientific_explanation(
-            drug_name=request.smiles,
+            drug_name=display_name,
             smiles=real_smiles,
             score=score,
             admet=admet_data,
@@ -87,15 +96,15 @@ async def analyze_drug(request: DrugAnalysisRequest):
         SCAN_PROGRESS["status"] = "Done"
 
         return {
-            "name": request.smiles if request.smiles != real_smiles else "Custom Candidate",
-            "smiles": real_smiles,
+            "name": display_name,   # ✅ Corrected Name
+            "smiles": real_smiles,  # ✅ Corrected SMILES
             "score": score,
             "status": status,
             "confidence": confidence_val,
             "color": "#00f3ff" if status == "ACTIVE" else "#ff0055",
             "admet": admet_data,
-            "active_sites": pharmacophore_data, # ✅ Added
-            "ai_explanation": ai_explanation    # ✅ Added
+            "active_sites": pharmacophore_data,
+            "ai_explanation": ai_explanation
         }
 
     # --- AUTO MODE ---
@@ -114,7 +123,6 @@ async def analyze_drug(request: DrugAnalysisRequest):
                 data_list.append(d_obj)
                 valid_indices.append(i)
             
-            # Update Progress Real-time
             if i % 50 == 0:
                 SCAN_PROGRESS["current"] = i
                 await asyncio.sleep(0.001) 
@@ -186,7 +194,6 @@ async def upload_file(target_id: str = Form(...), file: UploadFile = File(...)):
         data_list = []
         valid_indices = []
 
-        # Prepare Graph Data
         for i, row in enumerate(drugs_data):
             d_obj = process_data_object(row['smiles'], protein_seq)
             if d_obj:
@@ -198,7 +205,6 @@ async def upload_file(target_id: str = Form(...), file: UploadFile = File(...)):
 
         if not data_list: return {"error": "No valid molecules found."}
 
-        # AI Inference
         all_scores = []
         if model and data_list:
             loader = DataLoader(data_list, batch_size=64, shuffle=False)
@@ -213,19 +219,16 @@ async def upload_file(target_id: str = Form(...), file: UploadFile = File(...)):
         SCAN_PROGRESS["current"] = len(drugs_data)
         SCAN_PROGRESS["status"] = "Done"
 
-        # Format Results
         for idx, score_val in zip(valid_indices, all_scores):
             final_score = round(max(4.0, min(12.0, score_val)), 2)
             row = drugs_data[idx]
             
             admet_data = {}
-            active_sites = [] # Default empty
+            active_sites = [] 
 
             if final_score > 7.5:
                 mol = Chem.MolFromSmiles(row['smiles'])
-                # Calc properties only for good candidates to save time
                 admet_data = calculate_admet_properties(mol)
-                # ✅ Calc Pharmacophores for good candidates
                 active_sites = get_pharmacophore_data(mol)
 
             results.append({
@@ -236,7 +239,7 @@ async def upload_file(target_id: str = Form(...), file: UploadFile = File(...)):
                 "status": "ACTIVE" if final_score > 7.5 else "INACTIVE",
                 "color": "#00f3ff" if final_score > 7.5 else "#ff0055",
                 "admet": admet_data,
-                "active_sites": active_sites # ✅ Added to Upload results too
+                "active_sites": active_sites 
             })
 
         results.sort(key=lambda x: x["score"], reverse=True)
@@ -246,7 +249,6 @@ async def upload_file(target_id: str = Form(...), file: UploadFile = File(...)):
         print(f"❌ Upload Error: {e}")
         return {"error": f"Failed to process file: {str(e)}"}
 
-# ... (Existing code ke baad)
 
 class ChatRequest(BaseModel):
     question: str
