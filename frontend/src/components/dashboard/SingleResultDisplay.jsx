@@ -4,15 +4,15 @@ import { apiClient } from '../../api/client';
 import AdmetChart from './AdmetChart';
 import AiExplanation from './AiExplanation';
 
-export default function SingleResultDisplay({ result, chatHistory }) { // ✅ Receive chatHistory
+export default function SingleResultDisplay({ result, chatHistory }) {
   const chatEndRef = useRef(null);
   
-  if (!result) return null;
-
   // Auto-scroll to bottom of chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory]);
+
+  if (!result) return null;
 
   // 1. GLOBAL STYLE CONFIGURATION
   const styles = {
@@ -96,12 +96,19 @@ export default function SingleResultDisplay({ result, chatHistory }) { // ✅ Re
 
           {/* --- PANEL 3: AI CHAT ASSISTANT (Bottom Left) --- */}
           <div style={styles.panel}>
-             <div style={styles.label(true)}>
-                 <MessageSquare size={14} /> AI ASSISTANT
-             </div>
-
-             <div style={{ flex: 1, padding: '50px 20px 20px 20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+             
+             {/* Note: Label ko scrollable area ke andar rakha hai taake wo scroll ho jaye */}
+             <div style={{ flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 
+                {/* Scrollable Header Label */}
+                <div style={{ 
+                    display: 'flex', alignItems: 'center', gap: '6px', 
+                    color: '#00f3ff', fontSize: '11px', fontWeight: 'bold', 
+                    letterSpacing: '1px', opacity: 0.8, marginBottom: '10px' 
+                }}>
+                    <MessageSquare size={14} /> AI ASSISTANT
+                </div>
+
                 {chatHistory && chatHistory.length > 0 ? (
                     chatHistory.map((msg, index) => (
                         <div key={index} style={{
@@ -116,17 +123,19 @@ export default function SingleResultDisplay({ result, chatHistory }) { // ✅ Re
                             lineHeight: '1.5'
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', fontSize: '10px', color: msg.role === 'user' ? '#00f3ff' : '#888', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                {/* ✅ Name Changed Here */}
                                 {msg.role === 'user' ? <User size={10}/> : <Bot size={10}/>} 
-                                {msg.role === 'user' ? 'YOU' : 'AI DOCTOR'}
+                                {msg.role === 'user' ? 'YOU' : 'BIOGRAPH AI'} 
                             </div>
                             {msg.content}
                         </div>
                     ))
                 ) : (
-                    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.4 }}>
+                    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.4, minHeight: '200px' }}>
                         <Sparkles size={40} style={{ marginBottom: '15px', color: '#00f3ff' }} />
                         <div style={{ textAlign: 'center', fontSize: '14px' }}>
-                           ASK AI DOCTOR<br/>
+                           {/* ✅ Name Changed Here */}
+                           ASK BIOGRAPH AI<br/>
                            <span style={{ fontSize: '12px' }}>Use the bottom bar to chat.</span>
                         </div>
                     </div>
@@ -150,7 +159,6 @@ export default function SingleResultDisplay({ result, chatHistory }) { // ✅ Re
                overflow: 'hidden'
              }}>
                 <div style={{ width: '100%', height: '100%', display:'flex', justifyContent:'center', alignItems:'center' }}>
-                   {/* ✅ New Authentic Radar Chart */}
                    <AdmetChart admet={result.admet} color={result.color} />
                 </div>
              </div>
