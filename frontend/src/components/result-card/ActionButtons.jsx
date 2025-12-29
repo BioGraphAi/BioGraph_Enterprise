@@ -37,7 +37,7 @@ export default function ActionButtons({ result, onView, on3D, onDownload, downlo
           className="hover-glow"
           style={buttonStyle(result.color)}
         >
-          <FileText size={14} /> VIEW
+          <FileText size={14} />VIEW ANALYSIS
         </button>
       )}
 
@@ -48,7 +48,7 @@ export default function ActionButtons({ result, onView, on3D, onDownload, downlo
         className="hover-glow"
         style={buttonStyle('#bc13fe')} 
       >
-        <Box size={14} /> 3D VIEW
+        <Box size={14} /> 3D MODEL
       </button>
 
       {/* PDF Button */}
@@ -60,7 +60,7 @@ export default function ActionButtons({ result, onView, on3D, onDownload, downlo
         style={buttonStyle(result.color)}
       >
         {downloading ? <Loader size={14} className="spin" /> : <Download size={14} />} 
-        PDF
+       DOWNLOAD REPORT
       </button>
 
       <style>{`

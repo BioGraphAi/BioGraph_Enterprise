@@ -47,7 +47,7 @@ export default function AiExplanation({ result }) {
       }}>
         <BrainCircuit size={20} color="#00f3ff" />
         <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#fff', letterSpacing: '1px' }}>
-          GENERATIVE AI DOCTOR (LLAMA 3) {/* ✅ Name Fixed */}
+          AI ANALYST {/* ✅ Name Fixed */}
         </span>
         <Sparkles size={14} color="#bc13fe" className="animate-pulse" />
       </div>
