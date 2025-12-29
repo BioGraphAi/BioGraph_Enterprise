@@ -1,23 +1,26 @@
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Response, HTTPException
 from rdkit.Chem import Draw
 from urllib.parse import unquote
 from modules.chemistry import get_smiles_from_input
-from modules.state import SCAN_PROGRESS # ✅ IMPORTED SHARED STATE
+from modules.task_manager import get_task_status
 
 router = APIRouter()
 
-@router.get("/")
-def read_root():
-    return {"status": "online", "message": "BioGraph Engine is Modular & Ready"}
+# REMOVED the conflicting root endpoint because it is already defined in main.py
+# @router.get("/")
+# def read_root():
+#     return {"status": "online", "message": "BioGraph Engine is Modular & Ready"}
 
-@router.get("/progress")
-def get_progress():
-    # ✅ Ab ye wahi progress dikhayega jo analysis.py update karega
-    if SCAN_PROGRESS["total"] == 0:
-        return {"progress": 0, "status": "Idle"}
+@router.get("/progress/{task_id}")
+def get_progress(task_id: str):
+    """
+    Fetches the progress of a specific task.
+    """
+    status = get_task_status(task_id)
+    if "error" in status and status["error"] == "Task not found":
+         raise HTTPException(status_code=404, detail="Task not found")
     
-    perc = int((SCAN_PROGRESS["current"] / SCAN_PROGRESS["total"]) * 100)
-    return {"progress": perc, "status": SCAN_PROGRESS["status"]}
+    return status
 
 @router.get("/molecule_image")
 def get_molecule_image(smiles: str):

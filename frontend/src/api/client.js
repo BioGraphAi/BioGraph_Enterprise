@@ -33,7 +33,7 @@ export const apiClient = {
 
       const response = await fetch(`${BASE_URL}/upload`, {
         method: 'POST',
-        body: formData, // Content-Type header mat lagana, browser khud set karega
+        body: formData,
       });
       return await handleResponse(response);
     } catch (error) {
@@ -42,7 +42,15 @@ export const apiClient = {
     }
   },
 
-  // ... (Upload function ke baad)
+  // 3. Get Progress (Task Based)
+  getProgress: async (taskId) => {
+    try {
+      const response = await fetch(`${BASE_URL}/progress/${taskId}`);
+      return await response.json();
+    } catch (e) {
+      return { progress: 0, status: 'Connecting...', error: "Connection Error" };
+    }
+  },
 
   // 4. Chat with Drug
   askDrugAI: async (question, drugContext) => {
@@ -59,19 +67,7 @@ export const apiClient = {
     }
   },
   
-  // ... (getImageUrl waghaira same rahega)
-
-  // 3. Get Progress
-  getProgress: async () => {
-    try {
-      const response = await fetch(`${BASE_URL}/progress`);
-      return await response.json();
-    } catch (e) {
-      return { progress: 0, status: 'Connecting...' };
-    }
-  },
-
-  // 4. Get Image URL Helper
+  // 5. Get Image URL Helper
   getImageUrl: (smiles) => {
     if (!smiles) return "https://via.placeholder.com/400x400.png?text=No+Structure";
     return `${BASE_URL}/molecule_image?smiles=${encodeURIComponent(smiles)}`;

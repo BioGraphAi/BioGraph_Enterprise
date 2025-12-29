@@ -1,11 +1,37 @@
 import os
 import json
 from groq import Groq
+from modules.config import GROQ_API_KEY
+
+def generate_scientific_explanation(drug_name, smiles, score, admet, active_sites):
+    """
+    Wrapper for analyze_drug to maintain compatibility with existing import.
+    """
+    engine = LLMEngine()
+    drug_data = {
+        "name": drug_name,
+        "smiles": smiles,
+        "score": score,
+        "admet": admet,
+        "active_sites": active_sites
+    }
+    # For now, we assume a default target or it should be passed.
+    # But this function signature is fixed in the current usage.
+    # We'll use a placeholder target ID if not available.
+    return engine.analyze_drug(drug_data, "Unknown_Target")
+
+def chat_with_drug_data(question, context_data):
+    """
+    Wrapper for chat_with_drug to maintain compatibility.
+    """
+    engine = LLMEngine()
+    return engine.chat_with_drug(question, context_data)
+
 
 class LLMEngine:
     def __init__(self):
         # 🔑 API Key Configuration
-        self.api_key = os.getenv("GROQ_API_KEY", "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")
+        self.api_key = GROQ_API_KEY
         self.client = None
         
         # 🧠 SUPER INTELLIGENT MODEL LIST (2025 Updated)
@@ -156,7 +182,7 @@ class LLMEngine:
     # ✅ NEW: GENERATIVE OPTIMIZATION (INVENTOR MODE)
     def optimize_drug(self, drug_data, target_id):
         """
-        🧪 Generative Chemistry: AI suggest karega ke Drug ko kaise modify karein taake wo BEHTAR ho jaye.
+        🧪 Generative Chemistry: AI suggests how to modify the drug to improve it.
         """
         system_prompt = """
         You are an Expert Medicinal Chemist specializing in Lead Optimization.

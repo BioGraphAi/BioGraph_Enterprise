@@ -14,8 +14,6 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [selectedFile, setSelectedFile] = useState(null);
   const [aiThreshold, setAiThreshold] = useState(7.0);
-  
-  // ✅ NEW: Chat History State moved here
   const [chatHistory, setChatHistory] = useState([]);
 
   const fileInputRef = useRef(null);
@@ -37,7 +35,7 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
     if (historyLoadData) {
       setResult(historyLoadData);
       setBatchResults([]);
-      setChatHistory([]); // ✅ Clear chat on history load
+      setChatHistory([]);
       showToast(`History Loaded: ${historyLoadData.name}`, 'success');
     }
   }, [historyLoadData, showToast]);
@@ -62,7 +60,7 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
     setResult(null); 
     setBatchResults([]); 
     setSelectedId(null);
-    setChatHistory([]); // ✅ Clear chat on tab change
+    setChatHistory([]);
     if (!isSidebarOpen) setIsSidebarOpen(true);
   };
 
@@ -72,7 +70,7 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
 
   const handleDrugClick = (drug) => {
     setSelectedId(drug.name);
-    setChatHistory([]); // ✅ Clear chat immediately when new drug is clicked
+    setChatHistory([]);
     
     const isActive = drug.score >= aiThreshold;
     const newResult = {
@@ -103,60 +101,85 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
     setResult(null); 
     setBatchResults([]); 
     setSelectedId(null);
-    setChatHistory([]); // ✅ Clear chat on new scan start
+    setChatHistory([]);
     
-    let progressInterval = null;
-
     try {
-      if (activeTab === 'auto') {
-        progressInterval = setInterval(async () => {
-          const data = await apiClient.getProgress();
-          if (data) setProgress(data.progress);
-        }, 500);
-      }
-
-      let data;
+      // 1. Start Analysis (Get Task ID)
+      let startResponse;
       if (activeTab === 'upload') {
-        data = await apiClient.upload(selectedFile, safeTarget);
+        startResponse = await apiClient.upload(selectedFile, safeTarget);
       } else {
-        data = await apiClient.analyze({
+        startResponse = await apiClient.analyze({
           target_id: safeTarget,
           smiles: safeSmiles,
           mode: activeTab
         });
       }
 
-      if (data.error) {
-        showToast(data.error, "error");
-      } else if (data.results) {
-        setBatchResults(data.results);
-        showToast(`Found ${data.results.length} candidates`, "success");
-      } else {
-        const scoreValue = data.score !== undefined ? data.score : 0;
-        const isActive = scoreValue >= aiThreshold;
-        
-        const finalData = {
-            ...data,
-            confidence: data.confidence || "N/A",
-            status: isActive ? 'ACTIVE' : 'INACTIVE',
-            color: isActive ? '#00f3ff' : '#ff0055'
-        };
-
-        setResult(finalData);
-        showToast("Analysis Complete", "success");
-        saveToHistory(finalData);
+      if (startResponse.error) {
+        showToast(startResponse.error, "error");
+        setLoading(false);
+        return;
       }
+
+      const taskId = startResponse.task_id;
+      if (!taskId) {
+        showToast("Failed to start analysis.", "error");
+        setLoading(false);
+        return;
+      }
+
+      // 2. Poll for Progress
+      const pollInterval = setInterval(async () => {
+        const statusData = await apiClient.getProgress(taskId);
+
+        if (statusData.error) {
+          clearInterval(pollInterval);
+          showToast(`Error: ${statusData.error}`, "error");
+          setLoading(false);
+          return;
+        }
+
+        setProgress(statusData.progress || 0);
+
+        if (statusData.status === "Completed") {
+          clearInterval(pollInterval);
+          setLoading(false);
+          const data = statusData.result;
+
+          if (data.results) {
+             setBatchResults(data.results);
+             showToast(`Found ${data.results.length} candidates`, "success");
+          } else {
+             const scoreValue = data.score !== undefined ? data.score : 0;
+             const isActive = scoreValue >= aiThreshold;
+
+             const finalData = {
+                 ...data,
+                 confidence: data.confidence || "N/A",
+                 status: isActive ? 'ACTIVE' : 'INACTIVE',
+                 color: isActive ? '#00f3ff' : '#ff0055'
+             };
+
+             setResult(finalData);
+             showToast("Analysis Complete", "success");
+             saveToHistory(finalData);
+          }
+        } else if (statusData.status === "Failed") {
+           clearInterval(pollInterval);
+           setLoading(false);
+           showToast(`Analysis Failed: ${statusData.error}`, "error");
+        }
+
+      }, 500); // Poll every 500ms
 
     } catch (error) {
       console.error(error);
       showToast("Server Error or Network Issue", "error");
-    } finally {
-      if (progressInterval) clearInterval(progressInterval);
-      setProgress(100); setLoading(false);
+      setLoading(false);
     }
   };
 
-  // Return everything including Chat State
   return {
     activeTab, setActiveTab: handleTabChange,
     target, setTarget,
@@ -172,6 +195,6 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
     handleFileSelect,
     handleScan,
     handleDrugClick,
-    chatHistory, setChatHistory // ✅ Exporting Chat State
+    chatHistory, setChatHistory
   };
 };

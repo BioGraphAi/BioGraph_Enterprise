@@ -1,17 +1,20 @@
 import sqlite3
-import os
 import pandas as pd
-
-DB_NAME = "drugs.db"
-TXT_FILE = "drugs.txt"
+import os
+from modules.config import DB_PATH, TXT_FILE_PATH
 
 def init_db():
-    # 1. Check agar DB pehle se exist karta hai to reset na karein (Data Safety)
-    if os.path.exists(DB_NAME):
-        print(f"✅ Database '{DB_NAME}' already exists. Skipping reset.")
+    """
+    Initializes the SQLite database.
+    If the database exists, it skips initialization.
+    Otherwise, it reads from the seed text file and populates the database.
+    """
+    if os.path.exists(DB_PATH):
+        print(f"✅ Database '{DB_PATH}' already exists. Skipping reset.")
         return
 
-    conn = sqlite3.connect(DB_NAME)
+    print(f"⚙️ Initializing database at {DB_PATH}...")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
     cursor.execute('''
@@ -22,15 +25,15 @@ def init_db():
         )
     ''')
     
-    file_path = os.path.join(os.path.dirname(__file__), TXT_FILE)
-    if not os.path.exists(file_path):
-        print(f"❌ Error: '{TXT_FILE}' nahi mili! Backend folder mein check karein.")
+    if not os.path.exists(TXT_FILE_PATH):
+        print(f"❌ Error: '{TXT_FILE_PATH}' not found! Please check backend folder.")
+        conn.close()
         return
 
-    print(f"📂 Reading Samples File '{TXT_FILE}'...")
+    print(f"📂 Reading Samples File '{TXT_FILE_PATH}'...")
     
     try:
-        df = pd.read_csv(file_path, sep='\t', comment='!', on_bad_lines='skip', encoding='latin1')
+        df = pd.read_csv(TXT_FILE_PATH, sep='\t', comment='!', on_bad_lines='skip', encoding='latin1')
         
         if 'smiles' in df.columns:
             name_col = 'pert_iname' if 'pert_iname' in df.columns else 'sample_id'
@@ -39,7 +42,7 @@ def init_db():
             
             drugs_data = df_clean.values.tolist()
             
-            print(f"✅ SMILES MIL GAYE! Total {len(drugs_data)} drugs.")
+            print(f"✅ SMILES FOUND! Total {len(drugs_data)} drugs.")
             print("⏳ Inserting into Database...")
             
             cursor.executemany('INSERT INTO drugs (name, smiles) VALUES (?, ?)', drugs_data)
@@ -47,17 +50,20 @@ def init_db():
             print(f"🎉 Database ready with {len(drugs_data)} drugs.")
             
         else:
-            print("❌ Ab bhi SMILES nahi mile? Columns check karein.")
+            print("❌ Still no SMILES found? Check columns.")
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"❌ Error initializing DB: {e}")
 
     conn.close()
 
 def get_all_drugs():
-    conn = sqlite3.connect(DB_NAME)
+    """
+    Fetches all drugs from the database.
+    TODO: Add pagination for scalability.
+    """
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    # 2. LIMIT hata diya hai - Ab saaray drugs (6000+) aayenge
     cursor.execute("SELECT name, smiles FROM drugs") 
     drugs = [{"name": row[0], "smiles": row[1]} for row in cursor.fetchall()]
     conn.close()

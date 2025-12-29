@@ -1,11 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from modules.database import init_db
 
 # Import Routers
 from routers import system, analysis, reports
 
-app = FastAPI(title="BioGraph Enterprise API", version="2.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("🚀 BioGraph Enterprise Starting...")
+    init_db()
+    yield
+    print("🛑 BioGraph Enterprise Shutting Down...")
+
+app = FastAPI(title="BioGraph Enterprise API", version="2.0", lifespan=lifespan)
 
 # CORS Setup
 app.add_middleware(
@@ -15,12 +23,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Startup Event
-@app.on_event("startup")
-def on_startup():
-    print("🚀 BioGraph Enterprise Starting...")
-    init_db()
 
 # Include Routers
 app.include_router(system.router)
