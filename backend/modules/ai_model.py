@@ -2,9 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch_geometric.nn import GATConv, global_mean_pool
+import os
 
-# Constants
-DEVICE = torch.device('cpu')
+# ✅ FIX: Auto-detect GPU
+DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class DeepDrugNet_V4(torch.nn.Module):
     def __init__(self):
@@ -57,18 +58,22 @@ class DeepDrugNet_V4(torch.nn.Module):
         z = F.relu(self.fc_bn2(self.fc2(z)))
         return self.out(z)
 
-def load_ai_model(model_path):
+def load_ai_model(model_filename):
+    # ✅ FIX: Path Resolution
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    model_path = os.path.join(BASE_DIR, model_filename)
+
     model = DeepDrugNet_V4()
     try:
-        if not torch.cuda.is_available():
-             map_loc = torch.device('cpu')
-        else:
-             map_loc = None
-        
+        if not os.path.exists(model_path):
+             print(f"⚠️ Model file not found at: {model_path}")
+             return None
+
+        map_loc = DEVICE
         model.load_state_dict(torch.load(model_path, map_location=map_loc))
         model.to(DEVICE)
         model.eval()
-        print("✅ AI Model Loaded Successfully!")
+        print(f"✅ AI Model Loaded on {DEVICE}!")
         return model
     except Exception as e:
         print(f"⚠️ Model Load Error: {e}")

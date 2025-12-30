@@ -1,5 +1,4 @@
 import time
-import asyncio
 import torch
 import io
 import pandas as pd
@@ -17,7 +16,8 @@ from modules.database import get_all_drugs
 from modules.admet import calculate_admet_properties
 from modules.utils import calculate_confidence
 from modules.state import SCAN_PROGRESS 
-from modules.llm_engine import generate_scientific_explanation, chat_with_drug_data
+# ✅ FIX: Import correct instance
+from modules.llm_engine import llm_bot 
 
 router = APIRouter()
 model = load_ai_model("drug_model_v4.pt")
@@ -27,10 +27,9 @@ class DrugAnalysisRequest(BaseModel):
     smiles: Optional[str] = None
     mode: str
 
-# --- 1. ANALYZE ENDPOINT (Manual & Auto) ---
+# --- 1. ANALYZE ENDPOINT ---
 @router.post("/analyze")
-async def analyze_drug(request: DrugAnalysisRequest):
-    # Reset Progress
+def analyze_drug(request: DrugAnalysisRequest):
     SCAN_PROGRESS["current"] = 0
     SCAN_PROGRESS["total"] = 1
     SCAN_PROGRESS["status"] = "Validating..."
@@ -39,7 +38,7 @@ async def analyze_drug(request: DrugAnalysisRequest):
     protein_seq = get_protein_sequence(request.target_id)
     
     if not protein_seq:
-        return {"error": f"Invalid Target ID '{request.target_id}'"}
+        return {"error": f"Invalid Target ID '{request.target_id}' or Network Error"}
 
     # --- MANUAL MODE ---
     if request.mode == 'manual':
@@ -50,18 +49,8 @@ async def analyze_drug(request: DrugAnalysisRequest):
         if not real_smiles or not mol:
             return {"error": f"Could not find structure for '{request.smiles}'."}
 
-        # ✅ LOGIC: Name vs SMILES Auto-Detection
-        # Agar input aur real_smiles same hain, iska matlab user ne SMILES dala hai.
-        # Toh hum Name ko "Custom Ligand" ya "Molecule-X" set karenge.
-        # Agar different hain, toh user ne Name (e.g. Panadol) dala tha.
-        
-        display_name = request.smiles
-        if request.smiles == real_smiles:
-             # User entered SMILES -> Auto Generate Name
-             display_name = f"Custom Ligand {str(int(time.time()))[-4:]}"
-        else:
-             # User entered Name -> SMILES is already in real_smiles
-             display_name = request.smiles
+        is_smiles_input = request.smiles.strip() == real_smiles or len(request.smiles) > 20
+        display_name = f"Custom Ligand {str(int(time.time()))[-4:]}" if is_smiles_input else request.smiles
 
         score = 0.0
         status = "UNKNOWN"
@@ -76,28 +65,26 @@ async def analyze_drug(request: DrugAnalysisRequest):
                     status = "ACTIVE" if score > 7.5 else "INACTIVE"
             except: status = "MODEL ERROR"
         
-        # 1. Calculate ADMET
         admet_data = calculate_admet_properties(mol)
         confidence_val = calculate_confidence(score, threshold=7.5)
-
-        # 2. Calculate Pharmacophores
         pharmacophore_data = get_pharmacophore_data(mol)
 
-        # 3. Generate AI Explanation
-        ai_explanation = generate_scientific_explanation(
-            drug_name=display_name,
-            smiles=real_smiles,
-            score=score,
-            admet=admet_data,
-            active_sites=pharmacophore_data
-        )
+        # ✅ FIX: Correct AI Call using the new class method
+        drug_data_for_ai = {
+            "name": display_name,
+            "smiles": real_smiles,
+            "score": score,
+            "admet": admet_data,
+            "active_sites": pharmacophore_data
+        }
+        ai_explanation = llm_bot.analyze_drug(drug_data_for_ai, request.target_id)
 
         SCAN_PROGRESS["current"] = 1
         SCAN_PROGRESS["status"] = "Done"
 
         return {
-            "name": display_name,   # ✅ Corrected Name
-            "smiles": real_smiles,  # ✅ Corrected SMILES
+            "name": display_name,
+            "smiles": real_smiles,
             "score": score,
             "status": status,
             "confidence": confidence_val,
@@ -125,7 +112,6 @@ async def analyze_drug(request: DrugAnalysisRequest):
             
             if i % 50 == 0:
                 SCAN_PROGRESS["current"] = i
-                await asyncio.sleep(0.001) 
 
         results = []
         all_scores = []
@@ -138,7 +124,6 @@ async def analyze_drug(request: DrugAnalysisRequest):
                     try:
                         all_scores.extend(model(batch.to(DEVICE)).view(-1).tolist())
                     except: all_scores.extend([0.0]*batch.num_graphs)
-                    await asyncio.sleep(0.001)
         
         SCAN_PROGRESS["current"] = len(all_drugs)
         SCAN_PROGRESS["status"] = "Finalizing..."
@@ -161,8 +146,7 @@ async def analyze_drug(request: DrugAnalysisRequest):
 
 # --- 2. UPLOAD ENDPOINT ---
 @router.post("/upload")
-async def upload_file(target_id: str = Form(...), file: UploadFile = File(...)):
-    # Reset Progress
+def upload_file(target_id: str = Form(...), file: UploadFile = File(...)):
     SCAN_PROGRESS["current"] = 0
     SCAN_PROGRESS["total"] = 1
     SCAN_PROGRESS["status"] = "Reading File..."
@@ -174,7 +158,7 @@ async def upload_file(target_id: str = Form(...), file: UploadFile = File(...)):
     results = []
 
     try:
-        contents = await file.read()
+        contents = file.file.read()
         if file.filename.endswith('.csv'):
             df = pd.read_csv(io.BytesIO(contents))
         elif file.filename.endswith('.txt'):
@@ -182,7 +166,6 @@ async def upload_file(target_id: str = Form(...), file: UploadFile = File(...)):
         else:
             return {"error": "Invalid format. Only .csv or .txt allowed."}
 
-        # Normalize Columns
         df.columns = [c.lower().strip() for c in df.columns]
         if 'smiles' not in df.columns: return {"error": "Column 'smiles' not found!"}
         if 'name' not in df.columns: df['name'] = [f"Drug_{i}" for i in range(len(df))]
@@ -201,7 +184,6 @@ async def upload_file(target_id: str = Form(...), file: UploadFile = File(...)):
                 valid_indices.append(i)
             if i % 10 == 0:
                 SCAN_PROGRESS["current"] = i
-                await asyncio.sleep(0.001)
 
         if not data_list: return {"error": "No valid molecules found."}
 
@@ -213,7 +195,6 @@ async def upload_file(target_id: str = Form(...), file: UploadFile = File(...)):
                     try:
                         all_scores.extend(model(batch.to(DEVICE)).view(-1).tolist())
                     except: all_scores.extend([0.0]*batch.num_graphs)
-                    await asyncio.sleep(0.001)
         else: all_scores = [0.0] * len(data_list)
 
         SCAN_PROGRESS["current"] = len(drugs_data)
@@ -256,5 +237,6 @@ class ChatRequest(BaseModel):
 
 @router.post("/chat_drug")
 async def chat_drug(request: ChatRequest):
-    answer = chat_with_drug_data(request.question, request.drug_context)
+    # ✅ FIX: Call instance method
+    answer = llm_bot.chat_with_drug(request.question, request.drug_context)
     return {"answer": answer}

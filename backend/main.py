@@ -1,5 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv  # ✅ NEW IMPORT
+import os
+
+# ✅ Load Environment Variables (Sabse pehle ye chalna chahiye)
+load_dotenv()
+
 from modules.database import init_db
 
 # Import Routers
