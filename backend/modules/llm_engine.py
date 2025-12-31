@@ -1,155 +1,118 @@
 import os
 import json
-from google import genai
-from google.genai import types
+from groq import Groq
 
 class LLMEngine:
     def __init__(self):
-        self.api_key = os.getenv("GEMINI_API_KEY")
+        # ✅ Groq API Key
+        self.api_key = os.getenv("GROQ_API_KEY")
         self.client = None
-        # 🚀 Use the best model we found
-        self.active_model_id = "gemini-2.5-flash" 
+        
+        # ✅ Latest Llama 3.3 model for high performance
+        self.active_model_id = "llama-3.3-70b-versatile" 
         
         if self.api_key:
             try:
-                self.client = genai.Client(api_key=self.api_key)
-                print(f"✅ BioGraph Intelligence Activated (Google Gen AI SDK)")
+                self.client = Groq(api_key=self.api_key)
+                print(f"🚀 BioGraph Intelligence v3 (Llama-3) Activated")
             except Exception as e:
-                print(f"⚠️ GenAI Init Error: {e}")
+                print(f"⚠️ Groq Connection Error: {e}")
         else:
-            print("⚠️ WARNING: GEMINI_API_KEY not found.")
+            print("⚠️ ERROR: GROQ_API_KEY is missing in .env file.")
 
     def _get_response(self, prompt, system_instruction=None):
-        """
-        Smart Response Generator with Auto-Fallback
-        """
         if not self.client:
-            return "⚠️ AI Brain is offline. API Key Missing."
+            return "⚠️ AI Core is offline. Please check API configuration."
 
-        candidate_models = [
-            self.active_model_id,
-            "gemini-2.5-flash",
-            "gemini-2.5-pro",
-            "gemini-2.0-flash",
-            "gemini-1.5-flash",
-            "gemini-pro"
-        ]
-        
-        # Unique list maintain karte hue fallback logic
-        seen = set()
-        unique_candidates = [x for x in candidate_models if not (x in seen or seen.add(x))]
-
-        # 🎨 GLOBAL STYLE INSTRUCTION (Jo aapne manga)
-        # Ye har response ko format karega
+        # ✅ Global System Instruction (Optimized for Visualization References)
         base_instruction = """
-        ROLE: You are 'BioGraph AI', a highly intelligent and versatile research assistant.
+        ROLE: You are 'BioGraph AI', a world-class medicinal chemist and research assistant.
         
-        TONE & STYLE:
-        - Professional yet Casual (Friendly Scientist vibe).
-        - Use Emojis 🧪🧬🔬 to make text engaging.
-        - Use Markdown HEADINGS (##, ###) for structure.
-        - Be concise but detailed where necessary.
-        - If asked in Roman Urdu, reply in Roman Urdu.
+        STYLE:
+        - Use professional, yet engaging language.
+        - Use Emojis (🧪, 🧬, 💊, 🔬, 📊) to highlight points.
+        - Always use Markdown (Headings, Bold, Lists) for high readability.
+        - IMPORTANT: Refer to the visual tools in the UI. For example:
+            - 'Check the ADMET Radar Chart for toxicity details.'
+            - 'Look at the 3D Structure Viewer to see binding poses.'
+            - 'The BioGraph Score (shown on the gauge) indicates high potential.'
         
-        CAPABILITIES:
-        - You can discuss specific biology/chemistry topics AND general topics.
-        - Always format answers with bullet points and clear sections.
+        LANGUAGE:
+        - If the user asks in Roman Urdu/Hindi, reply in Roman Urdu with a scientific touch.
         """
         
-        # Agar specific instruction ayi hai to usay add karein
-        if system_instruction:
-            final_prompt = f"{base_instruction}\n\nSPECIFIC TASK:\n{system_instruction}\n\nUSER INPUT:\n{prompt}"
-        else:
-            final_prompt = f"{base_instruction}\n\nUSER INPUT:\n{prompt}"
+        system_msg = system_instruction if system_instruction else base_instruction
 
-        for model in unique_candidates:
-            try:
-                response = self.client.models.generate_content(
-                    model=model,
-                    contents=final_prompt,
-                    config=types.GenerateContentConfig(
-                        temperature=0.7 # Thora creative
-                    )
-                )
-                
-                if model != self.active_model_id:
-                    self.active_model_id = model
-                
-                return response.text
-
-            except Exception:
-                continue
-
-        return "⚠️ System Overload: Check Internet or API Key."
+        try:
+            completion = self.client.chat.completions.create(
+                model=self.active_model_id,
+                messages=[
+                    {"role": "system", "content": system_msg},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.6, # Thora precise rakhne ke liye
+                max_tokens=2500
+            )
+            return completion.choices[0].message.content
+        except Exception as e:
+            print(f"❌ AI Error: {e}")
+            return "⚠️ System Overload: AI is temporarily unavailable. Please retry in a moment."
 
     def analyze_drug(self, drug_data, target_id):
         """
-        🔬 DEEP SCIENTIFIC ANALYSIS
+        🔬 Scientific Deep-Dive Analysis
         """
-        # Data prepare karein
         context = f"""
-        Analyze this Drug Candidate:
-        - Name: {drug_data.get('name')}
+        ANALYZE THIS CANDIDATE:
+        - Molecule: {drug_data.get('name')}
         - SMILES: {drug_data.get('smiles')}
-        - Target: {target_id}
-        - Score: {drug_data.get('score')}
-        - ADMET: {json.dumps(drug_data.get('admet', {}))}
+        - Target Protein: {target_id}
+        - BioGraph Score: {drug_data.get('score')}
+        - ADMET Data: {json.dumps(drug_data.get('admet', {}))}
         """
         
         task = """
-        Output a JSON object with these keys:
+        Provide a detailed scientific verdict in JSON format.
+        Structure:
         {
-            "summary": "2-line engaging summary 📝",
-            "mechanism": "Binding mechanism explanation 🔗",
-            "safety_analysis": "Safety risks review ⚠️",
-            "clinical_potential": "High/Medium/Low 📈",
-            "conclusion": "Final Verdict 🎯"
+            "summary": "Engaging 2-line summary 📝",
+            "mechanism": "Detailed binding explanation 🔗",
+            "safety_analysis": "Critical safety/toxicity review (refer to ADMET chart) ⚠️",
+            "clinical_potential": "High/Medium/Low with reasoning 📈",
+            "conclusion": "Final Verdict & next steps 🎯"
         }
-        RETURN ONLY JSON.
+        RETURN ONLY VALID JSON.
         """
         
         response_text = self._get_response(context, task)
         
         try:
+            # Cleaning Llama's markdown wrappers if any
             cleaned_text = response_text.replace("```json", "").replace("```", "").strip()
             return json.loads(cleaned_text)
         except:
             return {
-                "summary": "Analysis generated but format issue.",
+                "summary": "Analysis generated with formatting issues.",
                 "mechanism": response_text[:500],
-                "safety_analysis": "Check Radar Chart.",
-                "clinical_potential": "Manual Review",
-                "conclusion": "Parse Error"
+                "safety_analysis": "Please check the automated ADMET metrics below.",
+                "clinical_potential": "Manual review required",
+                "conclusion": "Parsing Error"
             }
 
     def chat_with_drug(self, user_query, context_data):
         """
-        🤖 CHAT MODE (Updated for General + Specific)
+        🤖 Context-Aware Interactive Chat
         """
         context = f"""
-        CURRENT CONTEXT (If relevant):
-        Drug Name: {context_data.get('name')}
+        CURRENT MOLECULE CONTEXT:
+        Name: {context_data.get('name')}
+        SMILES: {context_data.get('smiles')}
         Score: {context_data.get('score')}
         ADMET: {context_data.get('admet')}
         
-        USER QUERY: "{user_query}"
+        USER QUESTION: "{user_query}"
         """
-        
-        # Hum koi strict instruction nahi denge, 
-        # taake wo Global Style (casual/profesional) use kare.
         return self._get_response(context)
 
-    def optimize_drug(self, drug_data, target_id):
-        context = f"Optimize: {drug_data.get('name')} ({drug_data.get('smiles')}) for {target_id}"
-        task = """
-        Suggest a modification. Return JSON:
-        { "original_flaw": "", "suggestion": "", "optimized_smiles": "", "reasoning": "" }
-        """
-        response_text = self._get_response(context, task)
-        try:
-            cleaned_text = response_text.replace("```json", "").replace("```", "").strip()
-            return json.loads(cleaned_text)
-        except:
-            return {"original_flaw": "Error", "suggestion": "Manual", "optimized_smiles": "", "reasoning": "Parse Error"}
-
+# Initialize global bot
 llm_bot = LLMEngine()
