@@ -80,7 +80,7 @@
 
   /* ── Mobile Sidebar backdrop overlay ── */
   .sidebar-backdrop {
-    display: block;
+    display: block !important;
   }
 
   /* ── RIGHT Sidebar overlay on mobile ── */
@@ -95,7 +95,8 @@
     border-top: none !important;
     border-left: 1px solid var(--sidebar-border) !important;
     flex-direction: column !important;
-    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+    background: rgba(8, 4, 25, 0.95) !important; /* solid/less transparent */
     transform: none !important;
   }
 
@@ -126,10 +127,16 @@
     display: block !important;
   }
 
-  /* Provide right padding so the 64px sidebar doesn't hide center content on mobile */
+  /* Ensure panel-right leaves space for the 64px sidebar so scrollbar is visible */
   .glass-panel.panel-right {
-    padding-right: 64px !important;
     margin-bottom: 0 !important;
+    padding-right: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  
+  body:has(.result-sidebar) .glass-panel.panel-right {
+    width: calc(100vw - 64px) !important;
+    flex: none !important;
   }
 
   /* ── Discovery dashboard padding ── */
@@ -148,10 +155,29 @@
     display: none;
   }
 
-  /* ── SingleResultDisplay header ── */
+  /* ── SingleResultDisplay header structured for mobile ── */
   .result-header-meta {
     flex-wrap: wrap;
     gap: 8px !important;
+    padding: 16px !important;
+  }
+  .result-header-inner {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+    width: 100% !important;
+  }
+  .header-divider {
+    display: none !important;
+  }
+  .result-header-scores {
+    width: 100% !important;
+    justify-content: space-between !important;
+    background: rgba(255,255,255,0.03) !important;
+    padding: 12px 16px !important;
+    border-radius: var(--radius-md) !important;
+    border: 1px solid var(--border-default) !important;
+    gap: 12px !important;
   }
 
   /* ── Hamburger mobile toggle ── */
@@ -169,6 +195,9 @@
     left: 16px !important;
     right: 16px !important;
     padding: 12px 16px !important;
+    flex-direction: column !important;
+    height: auto !important;
+    gap: 12px !important;
   }
 
   /* ── Settings modal full width ── */
@@ -207,6 +236,19 @@
     flex-direction: column !important;
     overflow-y: auto !important;
     overflow-x: hidden !important;
+  }
+
+  /* ── Input & Suggestions Form Layout ── */
+  .suggestions-box {
+    gap: 6px !important;
+    margin-top: 8px !important;
+  }
+  .suggestion-text {
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+  }
+  .cyber-input {
+    font-size: 16px !important; /* Prevents iOS zoom */
   }
 }
 

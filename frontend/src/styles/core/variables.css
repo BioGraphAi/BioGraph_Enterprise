@@ -1,11 +1,11 @@
 :root {
   /* ── Core Background Scale (Deep Dark Tech Theme) ── */
-  --bg-canvas:    #050505;      /* Almost black */
-  --bg-surface:   rgba(15, 23, 42, 0.4); /* Slate 900 with high transparency for glass */
-  --bg-sunken:    rgba(0, 0, 0, 0.5); /* Recessed areas */
-  --bg-elevated:  rgba(30, 41, 59, 0.6); /* Elevated cards */
-  --bg-hover:     rgba(51, 65, 85, 0.5); /* Hover state */
-  --bg-active:    rgba(71, 85, 105, 0.6); /* Active state */
+  --bg-canvas:    #030014;      /* Deepest indigo black */
+  --bg-surface:   rgba(20, 15, 50, 0.35); /* Smooth glass surface */
+  --bg-sunken:    rgba(0, 0, 0, 0.6); /* Recessed areas */
+  --bg-elevated:  rgba(35, 25, 75, 0.5); /* Elevated cards */
+  --bg-hover:     rgba(55, 45, 100, 0.4); /* Hover state */
+  --bg-active:    rgba(80, 60, 140, 0.5); /* Active state */
 
   /* ── Aliases for legacy variable names used in components ── */
   --bg-primary:   var(--bg-canvas);
@@ -13,17 +13,17 @@
   --bg-tertiary:  var(--bg-sunken);
 
   /* ── Sidebar (Glassmorphic Dark) ── */
-  --sidebar-bg:       rgba(10, 15, 25, 0.65); /* Deep translucent */
-  --sidebar-surface:  rgba(30, 41, 59, 0.4);
-  --sidebar-border:   rgba(255, 255, 255, 0.08);
-  --sidebar-hover:    rgba(51, 65, 85, 0.6);
+  --sidebar-bg:       rgba(8, 4, 25, 0.75); /* Deep translucent with blur */
+  --sidebar-surface:  rgba(30, 20, 60, 0.4);
+  --sidebar-border:   rgba(255, 255, 255, 0.06);
+  --sidebar-hover:    rgba(60, 40, 120, 0.4);
   --sidebar-text:     #f8fafc;
-  --sidebar-muted:    #94a3b8;
+  --sidebar-muted:    #8b9dc3;
 
   /* ── Borders (Subtle Glass Edges) ── */
-  --border-subtle:  rgba(255, 255, 255, 0.05);
-  --border-default: rgba(255, 255, 255, 0.1);
-  --border-strong:  rgba(255, 255, 255, 0.15);
+  --border-subtle:  rgba(255, 255, 255, 0.04);
+  --border-default: rgba(255, 255, 255, 0.08);
+  --border-strong:  rgba(255, 255, 255, 0.12);
   --border-active:  rgba(99, 102, 241, 0.5); /* Indigo glow */
 
   /* ── Text Scale (High Contrast) ── */

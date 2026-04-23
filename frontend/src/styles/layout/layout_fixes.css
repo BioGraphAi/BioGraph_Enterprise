@@ -40,13 +40,14 @@ html, body, #root {
 
 /* ── Mobile sidebar backdrop ── */
 .sidebar-backdrop {
-  display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   z-index: 499;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   animation: fadeIn 0.2s ease;
+  display: none; /* Hidden by default on desktop */
 }
 
 /* ── Mobile hamburger trigger ── */

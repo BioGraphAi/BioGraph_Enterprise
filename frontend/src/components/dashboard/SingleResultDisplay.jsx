@@ -37,7 +37,11 @@ export default function SingleResultDisplay({ result, chatHistory, setChatHistor
               <img
                 src={apiClient.getImageUrl(result.smiles)}
                 alt="2D Structure"
-                style={{ width: '100%', filter: 'brightness(0.9) contrast(1.1)' }}
+                style={{ 
+                  width: '100%', 
+                  filter: 'invert(1) hue-rotate(180deg) brightness(1.2) contrast(1.2)',
+                  mixBlendMode: 'screen'
+                }}
               />
             </div>
             <div style={{ marginTop: '24px', textAlign: 'center', width: '100%', maxWidth: '440px' }}>
@@ -109,8 +113,8 @@ export default function SingleResultDisplay({ result, chatHistory, setChatHistor
           zIndex: 10, flexShrink: 0, flexWrap: 'wrap', gap: '12px'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(12px, 2vw, 24px)', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="result-header-inner" style={{ display: 'flex', alignItems: 'center', gap: 'clamp(12px, 2vw, 24px)', flexWrap: 'wrap' }}>
+          <div className="result-header-name" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div>
               <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Molecule Name</div>
               <div style={{ fontSize: 'clamp(14px, 2.5vw, 18px)', fontWeight: 800, color: 'var(--text-primary)' }}>{result.name}</div>
@@ -127,9 +131,9 @@ export default function SingleResultDisplay({ result, chatHistory, setChatHistor
             </div>
           </div>
 
-          <div style={{ width: '1px', height: '32px', background: 'var(--border-subtle)', flexShrink: 0 }}></div>
+          <div className="header-divider" style={{ width: '1px', height: '32px', background: 'var(--border-subtle)', flexShrink: 0 }}></div>
 
-          <div style={{ display: 'flex', gap: 'clamp(12px, 2vw, 30px)', flexWrap: 'wrap' }}>
+          <div className="result-header-scores" style={{ display: 'flex', gap: 'clamp(12px, 2vw, 30px)', flexWrap: 'wrap' }}>
             {/* Binding Score */}
             <div>
               <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '2px' }}>Binding Score</div>

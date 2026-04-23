@@ -59,7 +59,7 @@ export default function DiscoveryDashboard({
       <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap', alignItems: 'stretch' }}>
         {/* Main Control Area */}
         <div style={{
-          flex: '1 1 400px',
+          flex: '1 1 min(100%, 400px)',
           background: 'var(--bg-surface)',
           backdropFilter: 'var(--glass-blur)',
           WebkitBackdropFilter: 'var(--glass-blur)',
@@ -110,7 +110,7 @@ export default function DiscoveryDashboard({
 
         {/* 3D Visualizer Area */}
         <div style={{
-          flex: '1 1 400px',
+          flex: '1 1 min(100%, 400px)',
           minHeight: '400px',
           background: 'var(--bg-surface)',
           backdropFilter: 'var(--glass-blur)',

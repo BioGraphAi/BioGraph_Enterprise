@@ -27,10 +27,6 @@ export default function UploadMode({ target, setTarget, fileInputRef, handleFile
         <div className="suggestions-box" style={{ pointerEvents: 'auto', flexWrap: 'wrap' }}>
           <span>Try:</span>
           <span className="suggestion-text" onClick={() => setTarget('6LU7')}>Covid-19</span>
-          <span className="suggestion-text" onClick={() => setTarget('3PP0')}>Cancer</span>
-          <span className="suggestion-text" onClick={() => setTarget('1Z00')}>Diabetes</span>
-          <span className="suggestion-text" onClick={() => setTarget('1J3I')}>Malaria</span>
-          <span className="suggestion-text" onClick={() => setTarget('5DI3')}>Alzheimer</span>
         </div>
       </div>
 
