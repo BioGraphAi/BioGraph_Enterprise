@@ -8,5 +8,5 @@ rdkit
 torch
 torch-geometric
 reportlab
-groq
 httpx
+openai

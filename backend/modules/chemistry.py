@@ -36,19 +36,31 @@ def get_smiles_from_input(input_str):
 
 async def get_protein_sequence(pdb_id):
     pdb_id = pdb_id.lower().strip()
-    # ✅ FIX: Added Timeout and Error Handling with Async HTTPX
+    
+    # 1️⃣ Try EBI API first
     try:
         url = f"https://www.ebi.ac.uk/pdbe/api/pdb/entry/molecules/{pdb_id}"
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, timeout=5.0)
-            if resp.status_code != 200:
-                print(f"⚠️ API returned status {resp.status_code} for {pdb_id}")
-                return None
-            data = resp.json()
-            return data[pdb_id][0]['sequence']
+            if resp.status_code == 200:
+                data = resp.json()
+                return data[pdb_id][0]['sequence']
+    except Exception:
+        pass # Fallback to RCSB
+        
+    # 2️⃣ Fallback: Try RCSB PDB API
+    try:
+        # RCSB provides a cleaner data structure for many entries
+        url = f"https://data.rcsb.org/rest/v1/core/polymer_entity/{pdb_id}/1"
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, timeout=5.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                return data['entity_poly']['pdbx_seq_one_letter_code']
     except Exception as e:
         print(f"⚠️ Protein Fetch Error ({pdb_id}): {e}")
-        return None 
+        
+    return None 
 
 def get_pharmacophore_data(mol):
     if not mol: return []

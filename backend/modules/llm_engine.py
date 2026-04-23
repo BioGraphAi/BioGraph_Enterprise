@@ -1,66 +1,71 @@
 import os
 import json
-from groq import Groq
+import logging
+from openai import OpenAI
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Setup simple logging
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 class LLMEngine:
     def __init__(self):
-        # ✅ Groq API Key
-        self.api_key = os.getenv("GROQ_API_KEY")
+        # ✅ GitHub Token from .env
+        self.github_token = os.getenv("GITHUB_TOKEN")
         self.client = None
         
-        # ✅ Latest Llama 3.3 model for high performance
-        self.active_model_id = "llama-3.3-70b-versatile" 
-        
-        if self.api_key:
+        # ✅ Model Configuration (GitHub Models supported IDs)
+        # Options: "gpt-4o", "meta-llama-3.1-70b-instruct", "phi-3-medium-128k-instruct"
+        self.model_id = "gpt-4o" 
+
+        if self.github_token:
             try:
-                self.client = Groq(api_key=self.api_key)
-                print(f"[SUCCESS] BioGraph Intelligence v3 (Llama-3) Activated")
+                # GitHub Models is OpenAI-compatible
+                self.client = OpenAI(
+                    base_url="https://models.inference.ai.azure.com",
+                    api_key=self.github_token,
+                )
+                logging.info(f"BioGraph Engine: GitHub Models ({self.model_id}) Activated")
             except Exception as e:
-                print(f"[WARNING] Groq Connection Error: {e}")
+                logging.error(f"GitHub Models Init Error: {str(e)}")
         else:
-            print("[ERROR] GROQ_API_KEY is missing in .env file.")
+            logging.error("CRITICAL: GITHUB_TOKEN is missing in .env file.")
 
     def _get_response(self, prompt, system_instruction=None):
+        """
+        Get AI response using GitHub Models API.
+        """
         if not self.client:
-            return "⚠️ AI Core is offline. Please check API configuration."
+            return "Error: AI Engine (GitHub) is not configured. Please check your GITHUB_TOKEN."
 
-        # ✅ Global System Instruction (Optimized for Visualization References)
         base_instruction = """
-        ROLE: You are 'BioGraph AI', a world-class medicinal chemist and research assistant.
-        
-        STYLE:
-        - Use professional, yet engaging language.
-        - Use Emojis (🧪, 🧬, 💊, 🔬, 📊) to highlight points.
-        - Always use Markdown (Headings, Bold, Lists) for high readability.
-        - IMPORTANT: Refer to the visual tools in the UI. For example:
-            - 'Check the ADMET Radar Chart for toxicity details.'
-            - 'Look at the 3D Structure Viewer to see binding poses.'
-            - 'The BioGraph Score (shown on the gauge) indicates high potential.'
-        
-        LANGUAGE:
-        - If the user asks in Roman Urdu/Hindi, reply in Roman Urdu with a scientific touch.
+        ROLE: You are 'BioGraph AI', a world-class medicinal chemist.
+        STYLE: Professional, scientific, and clear. Use Markdown.
+        UI: Refer to 'ADMET Radar Chart' or '3D Structure Viewer' when relevant.
+        LANGUAGE: If asked in Roman Urdu, reply in Roman Urdu with scientific touch.
         """
         
-        system_msg = system_instruction if system_instruction else base_instruction
+        sys_msg = system_instruction if system_instruction else base_instruction
 
         try:
-            completion = self.client.chat.completions.create(
-                model=self.active_model_id,
+            response = self.client.chat.completions.create(
+                model=self.model_id,
                 messages=[
-                    {"role": "system", "content": system_msg},
+                    {"role": "system", "content": sys_msg},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.6, # Thora precise rakhne ke liye
-                max_tokens=2500
+                temperature=0.7
             )
-            return completion.choices[0].message.content
+            return response.choices[0].message.content
         except Exception as e:
-            print(f"[ERROR] AI Error: {e}")
-            return "⚠️ System Overload: AI is temporarily unavailable. Please retry in a moment."
+            logging.error(f"GitHub Models Error: {str(e)}")
+            return f"Error: Failed to get response from GitHub Models. ({str(e)})"
 
     def analyze_drug(self, drug_data, target_id):
         """
-        🔬 Scientific Deep-Dive Analysis
+        Detailed scientific analysis for drug candidates.
         """
         context = f"""
         ANALYZE THIS CANDIDATE:
@@ -70,49 +75,24 @@ class LLMEngine:
         - BioGraph Score: {drug_data.get('score')}
         - ADMET Data: {json.dumps(drug_data.get('admet', {}))}
         """
-        
-        task = """
-        Provide a detailed scientific verdict in JSON format.
-        Structure:
-        {
-            "summary": "Engaging 2-line summary 📝",
-            "mechanism": "Detailed binding explanation 🔗",
-            "safety_analysis": "Critical safety/toxicity review (refer to ADMET chart) ⚠️",
-            "clinical_potential": "High/Medium/Low with reasoning 📈",
-            "conclusion": "Final Verdict & next steps 🎯"
-        }
-        RETURN ONLY VALID JSON.
-        """
+        task = "Provide a detailed scientific verdict in JSON format. Structure: {summary, mechanism, safety, clinical, conclusion}."
         
         response_text = self._get_response(context, task)
         
         try:
-            # Cleaning Llama's markdown wrappers if any
-            cleaned_text = response_text.replace("```json", "").replace("```", "").strip()
+            cleaned_text = response_text.strip()
+            if "```json" in cleaned_text:
+                cleaned_text = cleaned_text.split("```json")[1].split("```")[0].strip()
             return json.loads(cleaned_text)
         except:
-            return {
-                "summary": "Analysis generated with formatting issues.",
-                "mechanism": response_text[:500],
-                "safety_analysis": "Please check the automated ADMET metrics below.",
-                "clinical_potential": "Manual review required",
-                "conclusion": "Parsing Error"
-            }
+            return {"summary": "Analysis generated but parsing failed.", "content": response_text}
 
     def chat_with_drug(self, user_query, context_data):
         """
-        🤖 Context-Aware Interactive Chat
+        Context-aware interactive chat.
         """
-        context = f"""
-        CURRENT MOLECULE CONTEXT:
-        Name: {context_data.get('name')}
-        SMILES: {context_data.get('smiles')}
-        Score: {context_data.get('score')}
-        ADMET: {context_data.get('admet')}
-        
-        USER QUESTION: "{user_query}"
-        """
+        context = f"Context: {context_data.get('name')} ({context_data.get('smiles')})\nQuestion: {user_query}"
         return self._get_response(context)
 
-# Initialize global bot
+# Initialize global instance
 llm_bot = LLMEngine()
