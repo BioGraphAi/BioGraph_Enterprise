@@ -35,30 +35,49 @@ def get_smiles_from_input(input_str):
     return None, None
 
 async def get_protein_sequence(pdb_id):
-    pdb_id = pdb_id.lower().strip()
+    # Clean ID
+    orig_id = pdb_id.strip()
+    pid = orig_id.lower()
     
-    # 1️⃣ Try EBI API first
+    print(f"🧬 Fetching sequence for PDB: {pid}...")
+
+    # 1️⃣ Attempt: EBI PDBe API (Smart Entity Search)
     try:
-        url = f"https://www.ebi.ac.uk/pdbe/api/pdb/entry/molecules/{pdb_id}"
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, timeout=5.0)
+        url = f"https://www.ebi.ac.uk/pdbe/api/pdb/entry/molecules/{pid}"
+        async with httpx.AsyncClient(follow_redirects=True) as client:
+            resp = await client.get(url, timeout=10.0)
             if resp.status_code == 200:
                 data = resp.json()
-                return data[pdb_id][0]['sequence']
-    except Exception:
-        pass # Fallback to RCSB
-        
-    # 2️⃣ Fallback: Try RCSB PDB API
-    try:
-        # RCSB provides a cleaner data structure for many entries
-        url = f"https://data.rcsb.org/rest/v1/core/polymer_entity/{pdb_id}/1"
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, timeout=5.0)
-            if resp.status_code == 200:
-                data = resp.json()
-                return data['entity_poly']['pdbx_seq_one_letter_code']
+                # Check all molecules in the entry to find a valid protein sequence
+                if pid in data:
+                    for molecule in data[pid]:
+                        if 'sequence' in molecule and molecule['sequence']:
+                            return molecule['sequence']
     except Exception as e:
-        print(f"⚠️ Protein Fetch Error ({pdb_id}): {e}")
+        print(f"💡 EBI Fallback triggered (Error: {e})")
+        
+    # 2️⃣ Attempt: RCSB PDB Core API
+    try:
+        url = f"https://data.rcsb.org/rest/v1/core/polymer_entity/{pid}/1"
+        async with httpx.AsyncClient(follow_redirects=True) as client:
+            resp = await client.get(url, timeout=10.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                seq = data.get('entity_poly', {}).get('pdbx_seq_one_letter_code')
+                if seq: return seq
+    except Exception: pass
+
+    # 3️⃣ Attempt: RCSB Direct FASTA (The "Always Works" Method)
+    try:
+        url = f"https://www.rcsb.org/fasta/entry/{orig_id.upper()}"
+        async with httpx.AsyncClient(follow_redirects=True) as client:
+            resp = await client.get(url, timeout=15.0)
+            if resp.status_code == 200:
+                lines = resp.text.splitlines()
+                sequence = "".join([line.strip() for line in lines if not line.startswith(">")])
+                if sequence: return sequence
+    except Exception as e:
+        print(f"❌ All Protein Fetch Methods Failed for {pid}: {e}")
         
     return None 
 
