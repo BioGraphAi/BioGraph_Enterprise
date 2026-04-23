@@ -9,3 +9,13 @@
 2026-04-23 09:54:48 | INFO     | BioGraph | BioGraph LLM Engine: GitHub Models (gpt-4o) Activated
 2026-04-23 09:54:48 | INFO     | BioGraph | Loading AI Model: drug_model_v4.pt from C:\Users\riaza\Desktop\BioGraph_Enterprise\backend\drug_model_v4.pt
 2026-04-23 09:54:48 | INFO     | BioGraph | Successfully loaded model on cpu!
+2026-04-23 09:55:26 | INFO     | BioGraph | BioGraph LLM Engine: GitHub Models (gpt-4o) Activated
+2026-04-23 09:55:26 | INFO     | BioGraph | Loading AI Model: drug_model_v4.pt from C:\Users\riaza\Desktop\BioGraph_Enterprise\backend\drug_model_v4.pt
+2026-04-23 09:55:26 | INFO     | BioGraph | Successfully loaded model on cpu!
+2026-04-23 09:55:27 | INFO     | BioGraph | Database 'drugs.db' already exists. Skipping initialization.
+2026-04-23 09:56:43 | INFO     | BioGraph | Task Initialized: zrb0tisxoe
+2026-04-23 09:56:55 | INFO     | BioGraph | Task zrb0tisxoe COMPLETED successfully.
+2026-04-23 09:57:24 | INFO     | BioGraph | Task Initialized: nd4ewktvjc
+2026-04-23 09:57:37 | INFO     | BioGraph | Task nd4ewktvjc COMPLETED successfully.
+2026-04-23 10:03:26 | INFO     | BioGraph | Task Initialized: he5tw2g5nbl
+2026-04-23 10:03:37 | INFO     | BioGraph | Task he5tw2g5nbl COMPLETED successfully.
