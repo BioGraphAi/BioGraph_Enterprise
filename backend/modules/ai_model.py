@@ -3,14 +3,23 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch_geometric.nn import GATConv, global_mean_pool
 import os
+from modules.logger import logger
 
-# ✅ FIX: Auto-detect GPU
-DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# ✅ FIX: Auto-detect GPU with expert-level device selection
+def get_device():
+    if torch.cuda.is_available():
+        return torch.device('cuda')
+    # Check for Apple Silicon (Metal)
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device('cpu')
+
+DEVICE = get_device()
 
 class DeepDrugNet_V4(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        # Drug Path
+        # Drug Path (GAT)
         self.drug_embedding = nn.Embedding(10, 32)
         self.conv1 = GATConv(32, 32, heads=2, dropout=0.1)
         self.bn1 = nn.BatchNorm1d(64)
@@ -18,7 +27,8 @@ class DeepDrugNet_V4(torch.nn.Module):
         self.bn2 = nn.BatchNorm1d(128)
         self.conv3 = GATConv(128, 128, heads=1, dropout=0.1)
         self.bn3 = nn.BatchNorm1d(128)
-        # Protein Path
+        
+        # Protein Path (CNN)
         self.prot_embedding = nn.Embedding(22, 32)
         self.prot_conv1 = nn.Conv1d(32, 64, kernel_size=3)
         self.prot_bn1 = nn.BatchNorm1d(64)
@@ -26,7 +36,8 @@ class DeepDrugNet_V4(torch.nn.Module):
         self.prot_bn2 = nn.BatchNorm1d(128)
         self.prot_conv3 = nn.Conv1d(128, 128, kernel_size=3)
         self.prot_bn3 = nn.BatchNorm1d(128)
-        # Head
+        
+        # Fusion Head
         self.fc1 = nn.Linear(256, 128)
         self.fc_bn1 = nn.BatchNorm1d(128)
         self.fc2 = nn.Linear(128, 64)
@@ -34,7 +45,7 @@ class DeepDrugNet_V4(torch.nn.Module):
         self.out = nn.Linear(64, 1)
 
     def forward(self, data):
-        # Drug
+        # Drug Branch
         x, edge_index = data.x, data.edge_index
         x = self.drug_embedding(x)
         x = F.elu(self.conv1(x, edge_index))
@@ -42,7 +53,7 @@ class DeepDrugNet_V4(torch.nn.Module):
         x = F.elu(self.conv3(x, edge_index))
         drug_vec = self.bn3(global_mean_pool(x, data.batch))
         
-        # Protein (Batch Safe Reshape)
+        # Protein Branch (Batch Safe Reshape)
         batch_size = data.batch.max().item() + 1
         p = data.protein.view(batch_size, -1)
         
@@ -52,29 +63,32 @@ class DeepDrugNet_V4(torch.nn.Module):
         p = F.relu(self.prot_bn3(self.prot_conv3(p)))
         prot_vec = F.max_pool1d(p, p.size(2)).squeeze(2)
         
-        # Combined
+        # Combined Reasoning
         combined = torch.cat((drug_vec, prot_vec), dim=1)
         z = F.dropout(F.relu(self.fc_bn1(self.fc1(combined))), p=0.3, training=self.training)
         z = F.relu(self.fc_bn2(self.fc2(z)))
         return self.out(z)
 
 def load_ai_model(model_filename):
-    # ✅ FIX: Path Resolution
+    """
+    Expert-grade model loader with fallback and robust path resolution.
+    """
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     model_path = os.path.join(BASE_DIR, model_filename)
 
+    logger.info(f"Loading AI Model: {model_filename} from {model_path}")
+    
     model = DeepDrugNet_V4()
     try:
         if not os.path.exists(model_path):
-             print(f"[WARNING] Model file not found at: {model_path}")
-             return None
+             logger.warning(f"Model weights not found at: {model_path}. Starting with uninitialized weights.")
+             return model.to(DEVICE).eval()
 
-        map_loc = DEVICE
-        model.load_state_dict(torch.load(model_path, map_location=map_loc))
+        model.load_state_dict(torch.load(model_path, map_location=DEVICE))
         model.to(DEVICE)
         model.eval()
-        print(f"[SUCCESS] AI Model Loaded on {DEVICE}!")
+        logger.info(f"Successfully loaded model on {DEVICE}!")
         return model
     except Exception as e:
-        print(f"[ERROR] Model Load Error: {e}")
+        logger.error(f"Critical Model Load Error: {e}")
         return None

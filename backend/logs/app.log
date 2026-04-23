@@ -1,0 +1,11 @@
+2026-04-23 09:51:56 | INFO     | BioGraph | Loading AI Model: drug_model_v4.pt from C:\Users\riaza\Desktop\BioGraph_Enterprise\backend\drug_model_v4.pt
+2026-04-23 09:51:57 | INFO     | BioGraph | Successfully loaded model on cpu!
+2026-04-23 09:52:18 | INFO     | BioGraph | BioGraph LLM Engine: GitHub Models (gpt-4o) Activated
+2026-04-23 09:52:18 | INFO     | BioGraph | Loading AI Model: drug_model_v4.pt from C:\Users\riaza\Desktop\BioGraph_Enterprise\backend\drug_model_v4.pt
+2026-04-23 09:52:18 | INFO     | BioGraph | Successfully loaded model on cpu!
+2026-04-23 09:54:30 | INFO     | BioGraph | BioGraph LLM Engine: GitHub Models (gpt-4o) Activated
+2026-04-23 09:54:30 | INFO     | BioGraph | Loading AI Model: drug_model_v4.pt from C:\Users\riaza\Desktop\BioGraph_Enterprise\backend\drug_model_v4.pt
+2026-04-23 09:54:31 | INFO     | BioGraph | Successfully loaded model on cpu!
+2026-04-23 09:54:48 | INFO     | BioGraph | BioGraph LLM Engine: GitHub Models (gpt-4o) Activated
+2026-04-23 09:54:48 | INFO     | BioGraph | Loading AI Model: drug_model_v4.pt from C:\Users\riaza\Desktop\BioGraph_Enterprise\backend\drug_model_v4.pt
+2026-04-23 09:54:48 | INFO     | BioGraph | Successfully loaded model on cpu!

@@ -10,3 +10,4 @@ torch-geometric
 reportlab
 httpx
 openai
+psutil

@@ -2,6 +2,8 @@
 
 The backend of **BioGraph Enterprise** is a high-performance Python server powered by **FastAPI**. It acts as the core scientific discovery engine, handling all computationally intensive tasks ranging from Graph Neural Network (GNN) inference to real-time chemical profiling.
 
+---
+
 ## 🚀 Core Engine Capabilities
 
 ### 1. DeepDrugNet_V4 (AI Inference)
@@ -20,28 +22,51 @@ The backend of **BioGraph Enterprise** is a high-performance Python server power
 - **Automated Generation:** Employs ReportLab to generate highly professional, lab-ready PDF documents summarising AI diagnostics and ADMET profiles.
 - **Embedded Structures:** Includes dynamically generated 2D structures directly inside the downloadable report.
 
+---
+
 ## 🛠️ Technology Stack
 
 - **Framework:** `FastAPI` + `Uvicorn`
 - **Machine Learning:** `PyTorch`, `PyTorch Geometric` (PyG)
 - **Cheminformatics:** `RDKit`, `PubChemPy`
 - **Database:** `SQLite` (`drugs.db` for the internal library)
-- **Reporting:** `ReportLab`
+- **LLM Reasoning:** `OpenAI API` (compatible with GitHub Models)
+
+---
 
 ## 📂 Project Structure
 
 ```text
 backend/
-├── main.py             # FastAPI entry point & routers
+├── main.py                 # FastAPI entry point
 ├── modules/            
-│   ├── ai_model.py     # DeepDrugNet_V4 GNN implementations
-│   ├── admet.py        # Real-time ADMET profiling logic
-│   ├── chemistry.py    # Molecular parsing (SMILES/PDB)
-│   └── report.py       # PDF generation engine
-├── routers/            # Cleanly separated API endpoints
-├── drugs.db            # Local curated drug database
-└── requirements.txt    # Python dependencies
+│   ├── ai_model.py         # DeepDrugNet_V4 GNN implementations
+│   ├── admet.py            # Real-time ADMET profiling logic
+│   ├── chemistry.py        # Molecular parsing (SMILES/PDB)
+│   ├── llm_engine.py       # GPT-4o Integration logic
+│   └── report_generator.py # PDF generation engine
+├── routers/                # API Endpoints
+│   ├── analysis.py         # Discovery workflows
+│   ├── system.py           # System health & stats
+│   └── reports.py          # Export & Download logic
+├── drugs.db                # Local curated drug database
+└── requirements.txt        # Python dependencies
 ```
+
+---
+
+## 📡 API Endpoints (Key)
+
+### **Analysis Router**
+- `POST /analyze`: Starts a background analysis task (Manual/Auto mode).
+- `GET /progress/{task_id}`: Polls the status of a background task.
+- `POST /upload`: Batch analysis from CSV/TXT file.
+- `POST /chat_drug`: Interactive scientific chat about a specific molecule.
+
+### **Reports Router**
+- `POST /download_report`: Generates and returns a PDF report.
+
+---
 
 ## 📦 Installation & Setup
 
@@ -59,10 +84,17 @@ backend/
    pip install -r requirements.txt
    ```
 
-4. **Run the Discovery Engine:**
-   ```bash
-   uvicorn main:app --reload
+4. **Environment Variables (.env):**
+   ```env
+   GITHUB_TOKEN=your_token
    ```
 
+5. **Run the Discovery Engine:**
+   ```bash
+   python main.py
+   ```
+
+---
+
 ## 🧪 Scientific Integrity
-The backend engine has been strictly refined to focus on highly verifiable computational science. Experimental fluff (such as unsupported docking simulations) has been removed to maintain maximum performance, ensuring that all API endpoints serve robust, actionable research data.
+The backend engine has been strictly refined to focus on highly verifiable computational science. All models are optimized for GPU inference (CUDA/MPS) if available, falling back to high-performance CPU execution otherwise.

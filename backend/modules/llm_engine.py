@@ -1,14 +1,11 @@
 import os
 import json
-import logging
 from openai import OpenAI
 from dotenv import load_dotenv
+from modules.logger import logger
 
 # Load environment variables
 load_dotenv()
-
-# Setup simple logging
-logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 class LLMEngine:
     def __init__(self):
@@ -17,7 +14,6 @@ class LLMEngine:
         self.client = None
         
         # ✅ Model Configuration (GitHub Models supported IDs)
-        # Options: "gpt-4o", "meta-llama-3.1-70b-instruct", "phi-3-medium-128k-instruct"
         self.model_id = "gpt-4o" 
 
         if self.github_token:
@@ -27,24 +23,25 @@ class LLMEngine:
                     base_url="https://models.inference.ai.azure.com",
                     api_key=self.github_token,
                 )
-                logging.info(f"BioGraph Engine: GitHub Models ({self.model_id}) Activated")
+                logger.info(f"BioGraph LLM Engine: GitHub Models ({self.model_id}) Activated")
             except Exception as e:
-                logging.error(f"GitHub Models Init Error: {str(e)}")
+                logger.error(f"GitHub Models Init Error: {str(e)}")
         else:
-            logging.error("CRITICAL: GITHUB_TOKEN is missing in .env file.")
+            logger.error("CRITICAL: GITHUB_TOKEN is missing in .env file.")
 
     def _get_response(self, prompt, system_instruction=None):
         """
-        Get AI response using GitHub Models API.
+        Get AI response using GitHub Models API with enhanced safety and style.
         """
         if not self.client:
             return "Error: AI Engine (GitHub) is not configured. Please check your GITHUB_TOKEN."
 
         base_instruction = """
-        ROLE: You are 'BioGraph AI', a world-class medicinal chemist.
-        STYLE: Professional, scientific, and clear. Use Markdown.
-        UI: Refer to 'ADMET Radar Chart' or '3D Structure Viewer' when relevant.
-        LANGUAGE: If asked in Roman Urdu, reply in Roman Urdu with scientific touch.
+        ROLE: You are 'BioGraph AI', a world-class medicinal chemist and computational biologist.
+        STYLE: Professional, scientific, and data-driven. Use Markdown for formatting.
+        UI CONTEXT: The user is viewing a 3D dashboard with ADMET radar charts and 3D protein-ligand interaction views.
+        TONE: Authoritative yet accessible.
+        LANGUAGE: If the user communicates in Roman Urdu, respond in Roman Urdu with a professional scientific touch.
         """
         
         sys_msg = system_instruction if system_instruction else base_instruction
@@ -56,42 +53,64 @@ class LLMEngine:
                     {"role": "system", "content": sys_msg},
                     {"role": "user", "content": prompt}
                 ],
-                temperature=0.7
+                temperature=0.6,
+                max_tokens=2000
             )
             return response.choices[0].message.content
         except Exception as e:
-            logging.error(f"GitHub Models Error: {str(e)}")
-            return f"Error: Failed to get response from GitHub Models. ({str(e)})"
+            logger.error(f"LLM Response Error: {str(e)}")
+            return f"Error: Failed to generate scientific insight. ({str(e)})"
 
     def analyze_drug(self, drug_data, target_id):
         """
-        Detailed scientific analysis for drug candidates.
+        Detailed scientific analysis for drug candidates with structured output.
         """
         context = f"""
-        ANALYZE THIS CANDIDATE:
-        - Molecule: {drug_data.get('name')}
+        ANALYZE THIS CANDIDATE FOR REPURPOSING:
+        - Molecule Name: {drug_data.get('name')}
         - SMILES: {drug_data.get('smiles')}
-        - Target Protein: {target_id}
-        - BioGraph Score: {drug_data.get('score')}
-        - ADMET Data: {json.dumps(drug_data.get('admet', {}))}
+        - Target Protein (PDB): {target_id}
+        - AI Binding Score (pKd): {drug_data.get('score')}
+        - ADMET Profile: {json.dumps(drug_data.get('admet', {}))}
         """
-        task = "Provide a detailed scientific verdict in JSON format. Structure: {summary, mechanism, safety, clinical, conclusion}."
+        
+        task = """
+        Provide a rigorous scientific verdict. Your output MUST be in JSON format.
+        Structure: 
+        {
+          "summary": "High-level overview of the discovery",
+          "mechanism": "Proposed biochemical mechanism of interaction",
+          "safety": "Detailed safety and toxicity assessment based on ADMET",
+          "clinical": "Potential clinical implications or therapeutic use",
+          "conclusion": "Final verdict on whether this should proceed to wet-lab testing"
+        }
+        Do not include any text outside the JSON block.
+        """
         
         response_text = self._get_response(context, task)
         
         try:
+            # Robust JSON extraction
             cleaned_text = response_text.strip()
             if "```json" in cleaned_text:
                 cleaned_text = cleaned_text.split("```json")[1].split("```")[0].strip()
+            elif "```" in cleaned_text:
+                 cleaned_text = cleaned_text.split("```")[1].split("```")[0].strip()
+            
             return json.loads(cleaned_text)
-        except:
-            return {"summary": "Analysis generated but parsing failed.", "content": response_text}
+        except Exception as e:
+            logger.warning(f"LLM JSON Parsing Failed: {e}. Returning raw content.")
+            return {
+                "summary": "Scientific analysis generated.",
+                "content": response_text,
+                "error": "Structured parsing failed."
+            }
 
     def chat_with_drug(self, user_query, context_data):
         """
-        Context-aware interactive chat.
+        Context-aware interactive chat for deep-dive research.
         """
-        context = f"Context: {context_data.get('name')} ({context_data.get('smiles')})\nQuestion: {user_query}"
+        context = f"Research Context: Molecule {context_data.get('name')} (SMILES: {context_data.get('smiles')}). Previous Score: {context_data.get('score')}.\nUser Question: {user_query}"
         return self._get_response(context)
 
 # Initialize global instance

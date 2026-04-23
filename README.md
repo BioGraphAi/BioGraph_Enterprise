@@ -7,90 +7,94 @@
 
 **Advancing Medicine through Graph Intelligence**
 
-BioGraph Enterprise is a next-generation AI-powered scientific discovery platform designed to discover new therapeutic purposes for existing drugs. By leveraging **Graph Neural Networks (GNNs)** and **Deep Protein Sequence Intelligence**, it transforms months of traditional research into minutes of computational inference.
+BioGraph Enterprise is a state-of-the-art AI-powered scientific discovery platform designed for drug repurposing. By leveraging **Graph Neural Networks (GNNs)** and **Deep Protein Sequence Intelligence**, it accelerates the discovery of new therapeutic purposes for existing FDA-approved drugs, transforming traditional research timelines from months to minutes.
 
 ---
 
-### 🌌 Vision
-BioGraph Enterprise aims to solve "unsolvable" medical cases by identifying existing FDA-approved drugs that can be repurposed for new targets. 
+### 🌌 Vision & Impact
+BioGraph Enterprise aims to address unmet medical needs by identifying existing therapeutic agents that can be repurposed for novel targets. This approach significantly reduces the time and cost associated with drug discovery while ensuring high safety profiles since the candidates are already clinically validated.
 
-It integrates:
-- **🧠 Graph Neural Networks:** Reasoning about molecular structures at the atomic level using GAT (Graph Attention) layers.
-- **🧬 Protein Intelligence:** Analyzing target protein sequences for binding site compatibility using 1D CNNs.
-- **🤖 GPT-4o Reasoning (GitHub Models):** Advanced clinical interpretation and scientific reasoning for every discovery.
-- **🧪 Cheminformatics & ADMET:** Real-time safety, toxicity, and Lipinski rule-of-five validation.
-- **🕹️ Interactive Discovery:** A high-performance 3D dashboard for scientists to explore protein-ligand interactions.
+#### **Core Pillars:**
+- **🧠 Graph Intelligence:** Atom-level reasoning using Graph Attention Networks (GAT).
+- **🧬 Proteomic Analysis:** Deep sequence intelligence for target-specific binding site compatibility.
+- **🤖 Clinical Reasoning:** GPT-4o-driven scientific interpretation of AI predictions.
+- **🧪 Safety & ADMET:** Real-time toxicity, pharmacokinetics, and drug-likeness validation.
 
 ---
 
 ### 🔬 Scientific Workflow
 
-The platform follows a rigorous computational pipeline to ensure high-fidelity predictions.
+The platform implements a rigorous computational pipeline ensuring high-fidelity predictions.
 
 ```mermaid
-graph LR
-    A[Input Target ID] --> B[Fetch Protein Sequence]
-    A --> C[Select Drug/Library]
-    B --> D[BioGraph Discovery Engine]
-    C --> D
-    D --> E[Neural Binding Affinity]
-    D --> F[ADMET Safety Profile]
-    E --> G[Fusion & Ranking]
-    F --> G
-    G --> H[3D Interaction Studio]
-    G --> I[Scientific Report]
+graph TD
+    A[Input Target ID/PDB] --> B[Fetch Protein Sequence via API]
+    C[Drug Library / SMILES] --> D[Graph Construction]
+    B --> E[DeepDrugNet_V4 Engine]
+    D --> E
+    E --> F{Inference Head}
+    F --> G[Binding Affinity Score - pKd]
+    F --> H[ADMET Safety Metrics]
+    G --> I[Fusion Head]
+    H --> I
+    I --> J[GPT-4o Scientific Verdict]
+    J --> K[Interactive 3D Studio]
+    J --> L[Lab-Ready PDF Report]
 ```
 
 ---
 
-### 🧠 AI & Data Pipeline
+### 🧠 Technical Architecture: DeepDrugNet_V4
 
-Technical breakdown of how data flows through the **DeepDrugNet_V4** architecture.
+Our proprietary architecture fuses multiple intelligence layers:
 
-```mermaid
-flowchart TD
-    subgraph Drug_Processing [Drug Intelligence]
-        SMILES[SMILES String] --> RDKit[RDKit Parsing]
-        RDKit --> Graph[Molecular Graph]
-        Graph --> GAT[GAT Graph Attention Layers]
-    end
+#### **1. Drug Intelligence (Molecule-as-a-Graph)**
+- **Input:** SMILES strings converted to molecular graphs.
+- **Architecture:** 3-layer Graph Attention Network (GAT).
+- **Features:** Captures spatial and chemical relationships between atoms.
 
-    subgraph Protein_Processing [Protein Intelligence]
-        PDB[PDB ID] --> API[EBI / RCSB Fallback API]
-        API --> Seq[Amino Acid Sequence]
-        Seq --> CNN[1D CNN Feature Extraction]
-    end
+#### **2. Protein Intelligence (Sequence Intelligence)**
+- **Input:** Amino acid sequences (FASTA).
+- **Architecture:** 1D Convolutional Neural Networks (CNNs).
+- **Features:** Identifies local structural motifs and binding domains.
 
-    GAT --> Fusion[Attention Fusion Head]
-    CNN --> Fusion
-    Fusion --> Score[Binding Affinity Score - pKd]
-    Score --> GPT4[GPT-4o Reasoning Engine]
-    GPT4 --> Final[Scientific Verdict]
-```
+#### **3. Fusion & Reasoning**
+- **Attention Fusion:** Dynamically weights the drug and protein features.
+- **LLM Interpretation:** GPT-4o analyzes the numerical predictions to provide clinical context, mechanism of action, and potential side effects.
 
 ---
 
 ### 🚀 Key Platform Features
 
 #### **1. 3D Interaction Studio & Knowledge Graph**
-- **Multi-Mode Rendering:** Toggle between `Cartoon`, `Stick`, and `Surface` views to analyze binding pockets.
-- **3D Knowledge Graph Visualization:** Maps AI-predicted docking affinity scores to spatial distance. Features high-contrast color coding and 3D labels to distinguish binding strengths.
-- **Pharmacophore Mapping:** Visualize active sites including Hydrophobes, Donors, and Acceptors directly on the 3D structure.
+- **Precision Rendering:** Switch between `Cartoon`, `Stick`, and `Surface` modes.
+- **3D Knowledge Graph:** Real-time visualization of the discovery space where node distance represents binding affinity.
+- **Pharmacophore Mapping:** Visualize active sites (Donors, Acceptors, Hydrophobes) directly on the 3D structure.
 
-#### **2. Intelligent AI-Driven Workflows**
-- **Manual Mode:** Deep-dive into a single molecule by name or SMILES (Integrated with PubChem lookup).
-- **Auto Mode:** Intelligent drug discovery workflow scanning the internal FDA-approved library for new target hits.
-- **Multi-Target Analysis:** Batch process thousands of molecules via `.csv` or `.txt` supporting custom SMILES lists.
+#### **2. Intelligent Discovery Modes**
+- **Manual Discovery:** Input specific SMILES or search by common drug names (via PubChem).
+- **Autonomous Library Scanning:** Automatically screen the internal FDA-approved drug library against a target.
+- **Batch Processing:** Upload `.csv` or `.txt` files containing thousands of molecules for high-throughput screening.
 
-#### **3. Professional ADMET Profiling**
-- **Lipinski & QED:** Automated checking of the "Rule of Five" and Quantitative Estimate of Drug-likeness.
-- **Real-time Descriptors:** Calculation of MW, LogP, TPSA, and Rotatable Bonds.
-- **Safety Alerts:** Automated warnings for high toxicity or low bioavailability candidates.
+#### **3. Professional ADMET & Safety Profiling**
+- **Rule of Five Compliance:** Automated Lipinski validation.
+- **Physicochemical Descriptors:** Real-time calculation of LogP, TPSA, MW, and Rotatable Bonds.
+- **QED Score:** Quantitative Estimate of Drug-likeness for prioritization.
 
-#### **4. Scientific Reporting & Chat**
-- **Advanced PDF Lab Reporting:** Generate professional, lab-ready reports with molecular images, 2D structures, and comprehensive AI diagnostics.
-- **Interactive Drug Chat:** A specialized GPT-4o assistant to answer technical questions about analyzed molecules.
-- **History Tracking:** Persistent local storage for all previous research sessions.
+#### **4. Scientific Reporting**
+- **Lab-Ready PDF Reports:** Comprehensive reports including 2D structures, ADMET tables, and AI-generated clinical verdicts.
+- **AI Research Assistant:** Context-aware chat system to discuss findings with 'BioGraph AI'.
+
+---
+
+### 🛠️ Tech Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| **Backend** | Python, FastAPI, PyTorch, Torch Geometric, RDKit |
+| **Frontend** | React, Vite, Three.js (3D Viewer), Lucide Icons |
+| **AI Models** | GNN (GAT), CNN (Protein), GPT-4o (GitHub Models) |
+| **Database** | SQLite, PubChem API integration |
 
 ---
 
@@ -99,59 +103,61 @@ flowchart TD
 ```text
 BioGraph_Enterprise/
 ├── backend/                # FastAPI Discovery Engine
-│   ├── main.py             # Entry point
-│   ├── modules/            # Core logic (AI, Chemistry, LLM)
-│   │   ├── ai_model.py     # GNN implementations (DeepDrugNet_V4)
-│   │   ├── llm_engine.py   # GPT-4o Integration (GitHub Models)
-│   │   ├── chemistry.py    # SMILES & Protein processing (EBI/RCSB)
-│   │   └── admet.py        # Safety & Toxicity logic
-│   └── drugs.db            # Internal Drug Library
+│   ├── main.py             # Server Entry Point
+│   ├── modules/            # Core Scientific Modules
+│   │   ├── ai_model.py     # DeepDrugNet_V4 Architecture
+│   │   ├── chemistry.py    # Molecular & Protein Processing
+│   │   ├── llm_engine.py   # GPT-4o Integration
+│   │   └── report_gen.py   # PDF Report Generation
+│   └── routers/            # API Endpoints (Analysis, System)
 ├── frontend/               # React Dashboard (Vite)
 │   ├── src/
-│   │   ├── components/     # UI Design & 3D Viewer (Studio)
-│   │   ├── pages/          # Dashboard & Analytics
-│   └── public/             # Static Assets
+│   │   ├── components/     # UI Components & 3D Viewer
+│   │   ├── pages/          # Dashboard Layouts
+│   │   └── styles/         # Global Design System
 └── README.md
 ```
 
 ---
 
-### 🛠️ Installation & Setup
+### 🚀 Installation & Setup
 
-#### **1. Clone the Repository**
+#### **1. Environment Setup**
 ```bash
 git clone https://github.com/BioGraphAi/BioGraph_Enterprise.git
 cd BioGraph_Enterprise
 ```
 
-#### **2. Backend Setup**
+#### **2. Backend Configuration**
 ```bash
 cd backend
 python -m venv venv
-# Activate venv and install
-venv\Scripts\activate  # Windows
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
-
-#### **3. Environment Configuration**
-Create a `.env` file in the `backend/` folder:
+Create a `.env` file in `backend/`:
 ```env
-GITHUB_TOKEN=your_github_personal_access_token
+GITHUB_TOKEN=your_github_token_here
 ```
 
-#### **4. Run Platform**
+#### **3. Frontend Configuration**
 ```bash
-# Start Backend
-python main.py
-
-# Start Frontend (in another terminal)
 cd ../frontend
 npm install
+```
+
+#### **4. Launch**
+```bash
+# Terminal 1: Backend
+python main.py
+
+# Terminal 2: Frontend
 npm run dev
 ```
 
 ---
 
-### 👤 Credits & Authors
-Created by **BioGraph AI**.
+### 📜 License & Acknowledgments
+This project is for research and educational purposes.
+Created by **BioGraph AI Team**.
 *Advancing Medicine through Graph Intelligence.*

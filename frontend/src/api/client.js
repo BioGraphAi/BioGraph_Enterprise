@@ -25,16 +25,16 @@ export const apiClient = {
   },
 
   // 2. Upload File
-  upload: async (file, targetId, sessionId = 'default_session') => {
+  upload: async (file, targetId, taskId = 'default_task') => {
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('target_id', targetId);
-      formData.append('session_id', sessionId);
+      formData.append('task_id', taskId);
 
       const response = await fetch(`${BASE_URL}/upload`, {
         method: 'POST',
-        body: formData, // Content-Type header mat lagana, browser khud set karega
+        body: formData,
       });
       return await handleResponse(response);
     } catch (error) {
@@ -43,7 +43,15 @@ export const apiClient = {
     }
   },
 
-  // ... (Upload function ke baad)
+  // 3. Get Progress
+  getProgress: async (taskId = 'default_task') => {
+    try {
+      const response = await fetch(`${BASE_URL}/progress/${encodeURIComponent(taskId)}`);
+      return await response.json();
+    } catch (e) {
+      return { progress: 0, status: 'Connecting...' };
+    }
+  },
 
   // 4. Chat with Drug
   askDrugAI: async (question, drugContext) => {
@@ -60,19 +68,7 @@ export const apiClient = {
     }
   },
 
-  // ... (getImageUrl waghaira same rahega)
-
-  // 3. Get Progress
-  getProgress: async (sessionId = 'default_session') => {
-    try {
-      const response = await fetch(`${BASE_URL}/progress/${encodeURIComponent(sessionId)}`);
-      return await response.json();
-    } catch (e) {
-      return { progress: 0, status: 'Connecting...' };
-    }
-  },
-
-  // 4. Get Image URL Helper
+  // 5. Get Image URL Helper
   getImageUrl: (smiles) => {
     if (!smiles) return "https://via.placeholder.com/400x400.png?text=No+Structure";
     return `${BASE_URL}/molecule_image?smiles=${encodeURIComponent(smiles)}`;

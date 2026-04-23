@@ -128,7 +128,35 @@ export default function DiscoveryDashboard({
         </div>
       </div>
 
-    </div>
+      {/* ── Beautiful Scientific Footer ── */}
+      <div style={{ 
+        marginTop: '60px', 
+        padding: '30px 0', 
+        borderTop: '1px solid var(--border-subtle)', 
+        width: '100%', 
+        textAlign: 'center',
+        opacity: 0.8
+      }}>
+        <p style={{ 
+          fontSize: '15px', 
+          fontWeight: 400, 
+          color: 'var(--text-muted)', 
+          letterSpacing: '1px',
+          fontStyle: 'italic',
+          background: 'linear-gradient(90deg, var(--text-muted), var(--accent), var(--text-muted))',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          animation: 'shimmer 3s infinite linear',
+          margin: '0'
+        }}>
+          "Advancing the frontiers of medicine through the power of Graph Intelligence."
+        </p>
+        <div style={{ fontSize: '12px', color: 'var(--text-disabled)', marginTop: '8px' }}>
+          © 2026 BioGraph AI Enterprise. All Rights Reserved.
+        </div>
+      </div>
+
+      </div>
     </div>
   );
 }
