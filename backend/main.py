@@ -25,7 +25,7 @@ app.add_middleware(
 # Startup Event
 @app.on_event("startup")
 def on_startup():
-    print("🚀 BioGraph Enterprise Starting...")
+    print(">> BioGraph Enterprise Starting...")
     init_db()
 
 # Include Routers

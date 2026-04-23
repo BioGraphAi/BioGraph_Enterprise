@@ -1,46 +1,303 @@
-/* RESPONSIVE RULES */
+/* ════════════════════════════════════════
+   RESPONSIVE — Full Breakpoints System
+   ════════════════════════════════════════ */
+
+/* ── Tablet: 1024px ── */
 @media (max-width: 1024px) {
-  body, .app-container { overflow-y: auto !important; height: auto !important; }
-  .page-section { overflow-y: visible; height: auto; }
-  .app-container { padding-top: 60px; }
-  
-  /* Navbar Tweaks */
-  .glass-nav { height:60px !important; padding:0 15px !important; }
-  .nav-center-text { display: none; }
-  .brand-text { font-size:16px !important; }
-  .glass-logo-container svg { width:20px; height:20px; }
-  
-  /* Layout Flow */
-  .main-layout { flex-direction:column; height:auto !important; margin-top:0; padding:10px; padding-bottom:50px; overflow:visible; align-items:center; }
-  .panel-left { flex:none; width:90%; margin-bottom:20px; }
-  .panel-right { flex:none; width:94%; height:auto !important; min-height:600px; top:-30px !important; }
-  
-  /* Hologram & Results */
-  .hologram-wrapper { margin-top:150px !important; height:auto !important; min-height:400px; }
-  .result-card, .result-card.sidebar-closed { position:relative !important; bottom:0 !important; left:0 !important; right:0 !important; width:90% !important; margin:0 auto !important; transform:none !important; flex-direction: column !important; }
-  
-  /* Result Card Internals */
-  .score-section { flex-direction:column; width:100%; }
-  .score-val { font-size:32px !important; }
-  .vertical-div { width:100%; height:1px; margin:10px 0; }
-  .metrics-container { width:100%; justify-content:center; flex-wrap:wrap; margin-right: 0; }
+  :root {
+    --sidebar-width: 260px;
+  }
+
+  .discovery-dashboard {
+    padding: 28px 24px !important;
+  }
+
+  /* ADMET grid goes to single column */
+  .admet-grid-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* IntelligenceHub: stack vertically */
+  .intelligence-hub-layout {
+    flex-direction: column !important;
+    overflow-y: auto !important;
+  }
 }
 
+/* ── Mobile-Large: 768px ── */
 @media (max-width: 768px) {
-  /* Mobile Sidebar */
-  .panel-left { position: relative !important; width: 90% !important; margin-bottom: 20px !important; height: auto !important; }
-  .mobile-hide, .mobile-hide-text, .desktop-text { display: none !important; }
-  .nav-link { padding: 10px !important; min-width: 40px; justify-content: center !important; }
-  .nav-link svg { margin: 0 !important; }
+  :root {
+    --sidebar-width: 280px;
+    --sidebar-collapsed-width: 0px;
+  }
 
-  /* About Page Mobile */
-  .about-page-content { width: 95%; padding: 30px 15px; margin-top: 10px; height: auto; }
-  .about-hero-subtitle { font-size: 13px; letter-spacing: 2px; }
-  .features-grid { gap: 20px; }
-  .feature-card { width: 100%; max-width: 340px; }
-  
-  /* Mobile System Badge */
-  .header-badge { padding: 4px 8px !important; gap: 4px !important; }
-  .badge-text { font-size: 0 !important; } /* Hides "SYSTEM:" label */
-  .badge-text span { font-size: 10px !important; display: block !important; }
+  /* ── Body allows scrolling on mobile ── */
+  body {
+    overflow: hidden;
+  }
+
+  /* ── Main layout stacks correctly ── */
+  .main-layout {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ── LEFT Sidebar becomes a full-height overlay ── */
+  .glass-panel.panel-left {
+    position: fixed !important;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    height: 100% !important;
+    z-index: 500 !important;
+    transform: translateX(-100%);
+    transition: transform var(--sidebar-transition), box-shadow var(--sidebar-transition);
+    box-shadow: none;
+    flex: none !important;
+    width: var(--sidebar-width) !important;
+    min-width: var(--sidebar-width) !important;
+  }
+
+  /* Sidebar is OPEN (not collapsed) */
+  .glass-panel.panel-left:not(.collapsed) {
+    transform: translateX(0);
+    box-shadow: 4px 0 40px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Sidebar is COLLAPSED → hidden off-screen */
+  .glass-panel.panel-left.collapsed {
+    transform: translateX(-100%) !important;
+    width: var(--sidebar-width) !important;
+    min-width: var(--sidebar-width) !important;
+  }
+
+  /* ── RIGHT panel takes full width ── */
+  .glass-panel.panel-right {
+    width: 100% !important;
+    flex: 1 !important;
+    margin-left: 0 !important;
+  }
+
+  /* ── Mobile Sidebar backdrop overlay ── */
+  .sidebar-backdrop {
+    display: block;
+  }
+
+  /* ── RIGHT Sidebar overlay on mobile ── */
+  .result-sidebar {
+    position: fixed !important;
+    right: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: auto !important;
+    height: 100% !important;
+    z-index: 500 !important;
+    border-top: none !important;
+    border-left: 1px solid var(--sidebar-border) !important;
+    flex-direction: column !important;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.2);
+    transform: none !important;
+  }
+
+  /* Restore header and original styling so it matches the left sidebar UI */
+  .result-sidebar .sidebar-header,
+  .result-sidebar > div:last-child {
+    display: flex !important;
+    flex-direction: row !important;
+  }
+
+  .result-sidebar .sidebar-content {
+    display: block !important;
+    flex: unset !important;
+  }
+
+  .result-sidebar .sidebar-content > div {
+    flex-direction: column !important;
+    height: auto !important;
+  }
+
+  .result-sidebar .sidebar-nav-item {
+    display: flex !important;
+    flex-direction: row !important;
+    margin: 0 auto !important;
+  }
+
+  .result-sidebar .sidebar-nav-item > div {
+    display: block !important;
+  }
+
+  /* Provide right padding so the 64px sidebar doesn't hide center content on mobile */
+  .glass-panel.panel-right {
+    padding-right: 64px !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* ── Discovery dashboard padding ── */
+  .discovery-dashboard {
+    padding: 20px 16px !important;
+    max-width: 100% !important;
+  }
+
+  /* ── Manual mode grid: single column ── */
+  .manual-mode-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── HeaderStatus compact ── */
+  .header-badge .status-desktop span:last-child {
+    display: none;
+  }
+
+  /* ── SingleResultDisplay header ── */
+  .result-header-meta {
+    flex-wrap: wrap;
+    gap: 8px !important;
+  }
+
+  /* ── Hamburger mobile toggle ── */
+  .mobile-sidebar-trigger {
+    display: flex !important;
+  }
+
+  /* ── Nav center text hidden ── */
+  .nav-center-text {
+    display: none;
+  }
+
+  /* ── Cards responsive ── */
+  .result-card {
+    left: 16px !important;
+    right: 16px !important;
+    padding: 12px 16px !important;
+  }
+
+  /* ── Settings modal full width ── */
+  .settings-modal {
+    width: 95vw !important;
+    max-height: 90vh !important;
+    border-radius: var(--radius-xl) !important;
+  }
+
+  /* ── Feature cards full width ── */
+  .feature-card {
+    width: 100% !important;
+    max-width: 320px;
+  }
+
+  /* ── About page content ── */
+  .about-page-content {
+    width: 95% !important;
+    padding: 32px 20px !important;
+    min-height: auto !important;
+    margin: 20px auto !important;
+  }
+
+  /* ── Hologram text ── */
+  .loading-text {
+    font-size: 12px !important;
+  }
+
+  /* ── ADMET layout ── */
+  .admet-inner-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── IntelligenceHub side-by-side → stack ── */
+  .intelligence-hub-inner {
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+}
+
+/* ── Mobile-Small: 480px ── */
+@media (max-width: 480px) {
+  .settings-modal {
+    width: 100vw !important;
+    max-height: 100vh !important;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0 !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    top: auto !important;
+  }
+
+  .settings-overlay {
+    align-items: flex-end !important;
+  }
+
+  .discovery-dashboard {
+    padding: 16px 12px !important;
+  }
+
+  .primary-btn {
+    width: 100% !important;
+    min-width: unset !important;
+  }
+
+  .result-header-meta > div:nth-child(3),
+  .result-header-meta > div:nth-child(4) {
+    display: none;
+  }
+
+  .features-grid {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+
+  /* Viewer modal full screen on mobile */
+  .viewer-modal {
+    width: 100vw !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+    flex-direction: column !important;
+  }
+
+  .viewer-controls-panel {
+    width: 100% !important;
+    height: auto !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    padding: 12px 16px !important;
+    overflow-x: auto !important;
+    border-left: none !important;
+    border-top: 1px solid rgba(255,255,255,0.05) !important;
+  }
+}
+
+/* ── Touch device optimizations ── */
+@media (hover: none) and (pointer: coarse) {
+  /* Bigger tap targets */
+  .sidebar-nav-item {
+    min-height: 44px;
+  }
+
+  .sidebar-icon-btn {
+    width: 44px !important;
+    height: 44px !important;
+  }
+
+  .sidebar-toggle-btn {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .nav-link {
+    min-height: 44px;
+    padding: 10px 12px !important;
+  }
+
+  .suggestion-text {
+    padding: 7px 12px !important;
+    font-size: 12px !important;
+  }
+
+  /* Remove hover transforms that feel sluggish on touch */
+  .scan-item:hover {
+    transform: none;
+  }
+
+  .feature-card:hover {
+    transform: none;
+  }
 }

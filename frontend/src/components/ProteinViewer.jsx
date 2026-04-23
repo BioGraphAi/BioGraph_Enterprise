@@ -5,17 +5,17 @@ import '../styles/components/viewer.css'; // ✅ Import CSS
 
 import ViewerControls from './Viewer/ViewerControls';
 
-export default function ProteinViewer({ pdbId, onClose }) {
+export default function ProteinViewer({ pdbId, onClose, isEmbedded = false }) {
   const viewerRef = useRef(null);
   const viewer = useRef(null);
 
   const [loading, setLoading] = useState(true);
   const [isSpinning, setIsSpinning] = useState(false);
   const [error, setError] = useState(null);
-  
+
   // Load Default Setting
   const [viewMode, setViewMode] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('biograph_settings') || '{}').defaultView || 'surface'; } 
+    try { return JSON.parse(localStorage.getItem('biograph_settings') || '{}').defaultView || 'surface'; }
     catch { return 'surface'; }
   });
 
@@ -31,7 +31,7 @@ export default function ProteinViewer({ pdbId, onClose }) {
     if (mode === 'cartoon') v.setStyle({}, { cartoon: { color: 'spectrum', thickness: isHighQuality ? 1.2 : 0.8 } });
     if (mode === 'surface') {
       v.setStyle({}, { cartoon: { color: 'spectrum', thickness: 0.7 } });
-      v.addSurface($3Dmol.SurfaceType.VDW, { opacity: 0.35, color: '#ccf6ff', quality: isHighQuality ? 2 : 0 }); 
+      v.addSurface($3Dmol.SurfaceType.VDW, { opacity: 0.35, color: '#ccf6ff', quality: isHighQuality ? 2 : 0 });
     }
     if (mode === 'ligand') {
       v.setStyle({}, { line: { color: '#555', opacity: 0.3 } });
@@ -53,7 +53,7 @@ export default function ProteinViewer({ pdbId, onClose }) {
     viewer.current = $3Dmol.createViewer(viewerRef.current, { backgroundColor: '#050505', antialias: settings.graphicsQuality !== 'low' });
 
     fetch(`https://files.rcsb.org/download/${pdbId}.pdb`, { signal: controller.signal })
-      .then(res => { if(!res.ok) throw new Error('PDB not found'); return res.text(); })
+      .then(res => { if (!res.ok) throw new Error('PDB not found'); return res.text(); })
       .then(data => {
         if (!viewer.current) return;
         viewer.current.addModel(data, 'pdb');
@@ -61,32 +61,38 @@ export default function ProteinViewer({ pdbId, onClose }) {
         applyView(viewMode);
         setLoading(false);
       })
-      .catch(err => { if(err.name !== 'AbortError') { console.error(err); setError(err.message); setLoading(false); } });
+      .catch(err => { if (err.name !== 'AbortError') { console.error(err); setError(err.message); setLoading(false); } });
 
-    return () => { controller.abort(); if(viewer.current) { viewer.current.clear(); viewer.current = null; } };
+    return () => { controller.abort(); if (viewer.current) { viewer.current.clear(); viewer.current = null; } };
   }, [pdbId, viewMode]);
 
   // Actions
-  const toggleSpin = () => { if(viewer.current) { isSpinning ? viewer.current.spin(false) : viewer.current.spin('y', 0.1); setIsSpinning(!isSpinning); } };
+  const toggleSpin = () => { if (viewer.current) { isSpinning ? viewer.current.spin(false) : viewer.current.spin('y', 0.1); setIsSpinning(!isSpinning); } };
   const resetView = () => viewer.current?.zoomTo();
-  const capture = () => { if(viewer.current) { const a = document.createElement('a'); a.href = viewer.current.pngURI(); a.download = `${pdbId}.png`; a.click(); } };
+  const capture = () => { if (viewer.current) { const a = document.createElement('a'); a.href = viewer.current.pngURI(); a.download = `${pdbId}.png`; a.click(); } };
+
+  const content = (
+    <div className={`viewer-modal ${isEmbedded ? 'embedded' : ''}`} style={isEmbedded ? { width: '100%', height: '100%', borderRadius: 0, border: 'none', boxShadow: 'none' } : {}}>
+      {/* Canvas Area */}
+      <div className="viewer-canvas-wrap">
+        {loading && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: 'var(--text-muted)' }}><Loader className="spin-loader" size={28} /></div>}
+        {error && <div className="viewer-error">{error}</div>}
+        <div ref={viewerRef} style={{ width: '100%', height: '100%', cursor: 'crosshair' }} />
+      </div>
+
+      {/* Controls Side Panel */}
+      <ViewerControls
+        pdbId={pdbId} viewMode={viewMode} setViewMode={setViewMode} applyView={applyView}
+        toggleSpin={toggleSpin} isSpinning={isSpinning} resetView={resetView} capture={capture} onClose={onClose}
+      />
+    </div>
+  );
+
+  if (isEmbedded) return content;
 
   return (
     <div className="viewer-overlay">
-      <div className="viewer-modal">
-        {/* Canvas Area */}
-        <div className="viewer-canvas-wrap">
-          {loading && <div style={{position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', color:'#00f3ff'}}><Loader className="spin-loader" size={32} /></div>}
-          {error && <div className="viewer-error">{error}</div>}
-          <div ref={viewerRef} style={{ width: '100%', height: '100%', cursor: 'crosshair' }} />
-        </div>
-
-        {/* Controls Side Panel */}
-        <ViewerControls 
-          pdbId={pdbId} viewMode={viewMode} setViewMode={setViewMode} applyView={applyView}
-          toggleSpin={toggleSpin} isSpinning={isSpinning} resetView={resetView} capture={capture} onClose={onClose}
-        />
-      </div>
+      {content}
     </div>
   );
 }

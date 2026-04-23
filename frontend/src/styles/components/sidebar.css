@@ -1,34 +1,237 @@
-.glass-panel {
-  background: rgba(255,255,255,0.03); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
-  border:1px solid rgba(255,255,255,0.1); border-radius:20px; padding:25px; box-shadow:0 8px 32px rgba(0,0,0,0.37);
-  display:flex; flex-direction:column; height:100%; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+/* ════════════════════════════════════════
+   SIDEBAR — Dark panel, Claude-style UX
+   ════════════════════════════════════════ */
+
+/* ── Sidebar Header ── */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px 16px;
+  border-bottom: 1px solid var(--sidebar-border);
+  flex-shrink: 0;
+  min-height: 52px;
 }
-.panel-left { flex:0 0 350px; gap:20px; height:95%; }
-.panel-left.collapsed { flex: 0 0 80px !important; padding: 20px 0; align-items: center; gap: 20px; }
-.panel-right { flex:1; position:relative; overflow:hidden; padding:0 !important; height:80%; background: rgba(0,0,0,0.2); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); }
 
-.sidebar-toggle-btn { cursor: pointer; margin-bottom: 20px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; color: #00f3ff; transition: 0.3s; }
-.sidebar-toggle-btn:hover { background: rgba(0,243,255,0.2); }
-.sidebar-icon-btn { padding: 15px; border-radius: 12px; color: #888; cursor: pointer; transition: 0.3s; }
-.sidebar-icon-btn.active { background: var(--neon-cyan); color: #000; box-shadow: 0 0 15px rgba(0,243,255,0.4); }
-.sidebar-icon-btn:hover { color: #fff; transform: scale(1.1); }
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 4px;
+}
+.sidebar-logo {
+  background: rgba(255,255,255,0.08);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--sidebar-border);
+}
 
-.panel-header { display:flex; align-items:center; gap:10px; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:20px; }
-.panel-title { margin:0; font-size:16px; letter-spacing:1px; color:#fff; }
-.input-group { margin-bottom:20px; }
-.input-label { display:block; font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; font-weight:600; }
-.input-wrapper { position:relative; }
-.input-icon { position:absolute; top:13px; left:12px; }
+.sidebar-brand-name {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: block;
+  user-select: none;
+}
 
-.cyber-input { width:100%; background: rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:12px 15px; padding-left:35px; color:white; outline:none; transition:0.3s; box-sizing:border-box; }
-.cyber-input.textarea { padding-left:15px; font-size:12px; font-family:monospace; }
-.cyber-input:focus { border-color:var(--neon-cyan); background: rgba(0,0,0,0.5); box-shadow: 0 0 10px rgba(0,243,255,0.2); }
+.sidebar-title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--sidebar-muted);
+}
+
+/* ── Toggle button ── */
+.sidebar-toggle-btn {
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--sidebar-muted);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  flex-shrink: 0;
+}
+.sidebar-toggle-btn:hover {
+  color: var(--sidebar-text);
+  background: var(--sidebar-hover);
+}
+
+/* ── Collapsed icon buttons ── */
+.sidebar-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  color: var(--sidebar-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  background: transparent;
+  border: none;
+}
+.sidebar-icon-btn:hover {
+  color: var(--sidebar-text);
+  background: var(--sidebar-hover);
+}
+.sidebar-icon-btn.active {
+  background: rgba(255,255,255,0.1);
+  color: var(--sidebar-text);
+}
+
+/* ── Sidebar scrollable content ── */
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.sidebar-content::-webkit-scrollbar { width: 4px; }
+.sidebar-content::-webkit-scrollbar-thumb { background: var(--sidebar-border); border-radius: 99px; }
+
+/* ── Tab Group ── */
+.tab-group {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 20px;
+  background: rgba(255,255,255,0.06);
+  padding: 3px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--sidebar-border);
+}
+.tab-btn {
+  flex: 1;
+  padding: 7px 6px;
+  border: none;
+  background: transparent;
+  color: var(--sidebar-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  border-radius: 7px;
+  transition: all var(--transition-fast);
+  font-family: inherit;
+}
+.tab-btn:hover { color: var(--sidebar-text); }
+.tab-btn.active {
+  background: rgba(255,255,255,0.12);
+  color: var(--sidebar-text);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* ── Sidebar Nav Extra ── */
+.sidebar-nav-extra {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--sidebar-border);
+}
+
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  color: var(--sidebar-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  background: transparent;
+  border: none;
+}
+
+.sidebar-nav-item:hover {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-text);
+}
+
+.sidebar-nav-item.active {
+  background: rgba(255,255,255,0.08);
+  color: var(--sidebar-text);
+}
+
+/* ── Sidebar Footer / CTA Button ── */
+.sidebar-footer {
+  padding: 12px 16px 16px 16px;
+  flex-shrink: 0;
+  border-top: 1px solid var(--sidebar-border);
+}
 
 .cyber-btn {
-  width: 100%; padding: 15px; background: linear-gradient(90deg, rgba(0, 243, 255, 0.1), rgba(0, 102, 255, 0.2));
-  border: 1px solid var(--neon-cyan); box-shadow: 0 0 10px rgba(0, 243, 255, 0.1); color: var(--neon-cyan); font-weight: 800; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; border-radius: 10px; position: relative; overflow: hidden; transition: all 0.3s ease; margin-top: auto;
+  width: 100%;
+  padding: 11px 16px;
+  background: #ffffff;
+  border: none;
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
 }
-.cyber-btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 40px rgba(0, 243, 255, 0.6); transform: translateY(-2px); }
-.cyber-btn:hover::before { left: 100%; }
-.cyber-btn::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent); transition: 0.5s; transform: skewX(-20deg); }
-.cyber-btn:disabled { opacity: 0.7; cursor: not-allowed; filter: grayscale(1); }
+.cyber-btn .btn-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.cyber-btn:hover {
+  background: rgba(255,255,255,0.88);
+}
+.cyber-btn:active {
+  background: rgba(255,255,255,0.78);
+  transform: translateY(1px);
+}
+.cyber-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: rgba(255,255,255,0.5);
+}
+.cyber-btn::before { display: none; }
+
+/* ── Panel Header (legacy, keep compat) ── */
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--sidebar-border);
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+.panel-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  color: var(--sidebar-muted);
+  text-transform: uppercase;
+}

@@ -124,15 +124,15 @@ export default function DrugChat({ result, compact, setChatHistory }) {
     >
       <div style={{
         position: 'relative', display: 'flex', alignItems: 'center', width: '100%',
-        background: 'rgba(10, 10, 15, 0.6)',
-        border: isFocused || isListening ? '1px solid #00f3ff' : '1px solid rgba(255,255,255,0.15)',
-        boxShadow: isFocused || isListening ? '0 0 15px rgba(0, 243, 255, 0.2)' : 'none',
-        borderRadius: '30px', padding: '5px 8px', transition: 'all 0.3s ease', backdropFilter: 'blur(10px)'
+        background: 'var(--bg-secondary)',
+        border: isFocused || isListening ? '1px solid var(--border-active)' : '1px solid var(--border-default)',
+        boxShadow: 'none',
+        borderRadius: '30px', padding: '5px 8px', transition: 'border-color 0.15s ease', backdropFilter: 'blur(10px)'
       }}>
         
         {/* Icon */}
         <div style={{ paddingLeft: '12px', opacity: isFocused ? 1 : 0.5 }}>
-          <Sparkles size={16} color={isFocused ? "#00f3ff" : "#888"} />
+          <Sparkles size={16} color={isFocused ? 'var(--text-secondary)' : 'var(--text-muted)'} />
         </div>
 
         {/* Input */}
@@ -157,12 +157,12 @@ export default function DrugChat({ result, compact, setChatHistory }) {
           className="hover-scale"
           title="Speak to AI"
           style={{
-            background: isListening ? 'rgba(255, 0, 85, 0.2)' : 'transparent',
-            border: isListening ? '1px solid #ff0055' : 'none',
-            color: isListening ? '#ff0055' : '#888',
+            background: isListening ? 'rgba(248, 113, 113, 0.1)' : 'transparent',
+            border: isListening ? '1px solid var(--status-error)' : 'none',
+            color: isListening ? 'var(--status-error)' : 'var(--text-muted)',
             width: '32px', height: '32px', borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', marginRight: '5px', transition: '0.3s'
+            cursor: 'pointer', marginRight: '5px', transition: '0.2s'
           }}
         >
           {isListening ? <MicOff size={16} className="pulse-red" /> : <Mic size={16} />}
@@ -173,11 +173,11 @@ export default function DrugChat({ result, compact, setChatHistory }) {
           type="submit" 
           disabled={loading || !input.trim()}
           style={{
-            background: input.trim() ? '#00f3ff' : 'rgba(255,255,255,0.1)',
-            border: 'none', color: input.trim() ? '#000' : '#555',
+            background: input.trim() ? 'var(--text-primary)' : 'var(--bg-elevated)',
+            border: '1px solid var(--border-default)', color: input.trim() ? 'var(--bg-primary)' : 'var(--text-muted)',
             width: '36px', height: '36px', borderRadius: '50%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: input.trim() ? 'pointer' : 'default', transition: 'all 0.3s ease', marginRight: '2px'
+            cursor: input.trim() ? 'pointer' : 'default', transition: 'all 0.2s ease', marginRight: '2px'
           }}
         >
           {loading ? <Loader size={16} className="spin-loader"/> : <Send size={16} />}

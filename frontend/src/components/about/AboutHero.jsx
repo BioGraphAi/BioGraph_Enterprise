@@ -1,25 +1,54 @@
 import React from 'react';
-import { Hexagon } from 'lucide-react';
+import { Dna } from 'lucide-react';
 
 export default function AboutHero() {
   return (
-    <div style={{ textAlign: 'center', width: '100%' }}>
+    <div style={{ textAlign: 'center', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', zIndex: 9999 }}>
       
-      {/* ✅ FIX: Added margin auto to center the fixed-width hologram */}
-      <div className="hologram-inner" style={{ 
-        height: '150px', 
-        marginBottom: '30px', 
-        marginLeft: 'auto', 
-        marginRight: 'auto' 
+      <div style={{ 
+        height: '110px',
+        marginBottom: '32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}>
-        <div className="dna-spinner">
-          <Hexagon size={80} color="#00f3ff" fill="rgba(0, 243, 255, 0.3)" strokeWidth={2} />
+        <div style={{
+          background: 'linear-gradient(135deg, var(--accent), #a855f7)',
+          padding: '22px',
+          borderRadius: '24px',
+          boxShadow: '0 12px 35px rgba(99, 102, 241, 0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          <Dna size={56} color="#ffffff" strokeWidth={2} />
         </div>
       </div>
 
-      <div className="brand-text">BioGraph <span style={{ color: '#00f3ff' }}>AI</span></div>
-      <div><br /></div>
-      <div className="about-hero-subtitle">🔬The Universal Drug Repurposing Engine🚀</div>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+        <span className="brand-text" style={{ 
+            fontSize: '46px', 
+            fontWeight: 800, 
+            letterSpacing: '-1.5px', 
+            margin: 0, 
+            lineHeight: '1.2',
+            background: 'linear-gradient(135deg, var(--accent) 0%, #a855f7 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            display: 'inline-block'
+        }}>BioGraph</span>
+        <span style={{ 
+          fontSize: '15px', 
+          fontWeight: 600,
+          letterSpacing: '1px',
+          background: 'linear-gradient(90deg, var(--accent), #a855f7)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          textTransform: 'uppercase'
+        }}>
+          The Universal Drug Repurposing Engine
+        </span>
+      </div>
     </div>
   );
 }

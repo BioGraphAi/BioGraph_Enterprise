@@ -5,7 +5,7 @@ export default function AISettings({ settings, setSettings }) {
   return (
     <div className="setting-section">
       <div className="label-group">
-        <Zap size={16} color="#bc13fe" />
+        <Zap size={18} color="var(--accent)" />
         <span className="setting-label">AI Sensitivity (pKd Threshold)</span>
       </div>
       <div className="control-row">
@@ -13,7 +13,7 @@ export default function AISettings({ settings, setSettings }) {
           type="range" min="5" max="10" step="0.1" 
           value={settings.threshold} 
           onChange={(e) => setSettings({...settings, threshold: parseFloat(e.target.value)})}
-          style={{ width: '100%', accentColor: '#bc13fe' }}
+          style={{ width: '100%', accentColor: 'var(--text-primary)' }}
         />
         <span className="value-badge">{settings.threshold}</span>
       </div>

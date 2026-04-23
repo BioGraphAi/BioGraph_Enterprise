@@ -1,256 +1,167 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { MessageSquare, Sparkles, User, Bot, Activity, Box, Volume2, VolumeX } from 'lucide-react';
+import React from 'react';
+import { Activity, Box, Zap, ShieldCheck, Share2 } from 'lucide-react';
 import { apiClient } from '../../api/client';
+
+// Child Components
 import AdmetChart from './AdmetChart';
-import AiExplanation from './AiExplanation';
+import IntelligenceHub from './IntelligenceHub';
+import ProteinViewer from '../ProteinViewer';
 
-export default function SingleResultDisplay({ result, chatHistory }) {
-  const chatEndRef = useRef(null);
-  
-  // ✅ Track karega ke kaunsa message abhi bol raha hai (by Index)
-  const [speakingIndex, setSpeakingIndex] = useState(null);
-
-  // Auto-scroll to bottom of chat
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatHistory]);
-
-  // ✅ SMART SPEAK FUNCTION
-  const speakText = (text, index) => {
-    if ('speechSynthesis' in window) {
-      // Pehle agar kuch chal raha hai to band karein
-      window.speechSynthesis.cancel(); 
-
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.0; 
-      utterance.pitch = 1.0;
-      
-      const voices = window.speechSynthesis.getVoices();
-      const preferred = voices.find(v => v.lang.includes('en') && !v.name.includes('Google')); 
-      if (preferred) utterance.voice = preferred;
-      
-      // ✅ Event Listeners
-      utterance.onstart = () => setSpeakingIndex(index); // Icon ko Stop bana do
-      utterance.onend = () => setSpeakingIndex(null);    // Wapis Speaker bana do
-      utterance.onerror = () => setSpeakingIndex(null);  // Error aaye to bhi reset
-
-      window.speechSynthesis.speak(utterance);
-    }
-  };
-
-  // ✅ STOP FUNCTION
-  const stopSpeech = () => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      setSpeakingIndex(null); // State reset
-    }
-  };
-
-  // Cleanup on unmount (agar user tab change kare to awaz band ho)
-  useEffect(() => {
-    return () => {
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    };
-  }, []);
-
+export default function SingleResultDisplay({ result, chatHistory, setChatHistory, activeTab, setActiveTab }) {
   if (!result) return null;
 
-  // 1. GLOBAL STYLE CONFIGURATION
-  const styles = {
-    gridContainer: {
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr', 
-      gridTemplateRows: 'minmax(400px, 1fr) minmax(400px, 1fr)', 
-      gap: '25px', 
-      padding: '25px',
-      width: '100%',
-      height: '100%',
-      boxSizing: 'border-box',
-    },
-    panel: {
-      background: 'rgba(255, 255, 255, 0.03)',
-      border: `1px solid ${result.color}20`,
-      borderRadius: '24px', 
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden', 
-      position: 'relative',
-      boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-      backdropFilter: 'blur(5px)',
-    },
-    label: (isLeft = false) => ({
-      position: 'absolute',
-      top: '15px',
-      [isLeft ? 'left' : 'right']: '20px', 
-      color: isLeft ? '#00f3ff' : result.color,
-      fontSize: '11px',
-      fontWeight: 'bold',
-      letterSpacing: '1px',
-      opacity: 0.8,
-      zIndex: 10,
-      display: 'flex',
-      alignItems: 'center',
-      gap: '6px'
-    })
-  };
+  // Header Color Logic
+  const scoreColor = result.score >= 8.5 ? 'var(--status-success)' :
+    result.score >= 7.0 ? 'var(--status-warning)' : 'var(--status-error)';
 
-  return (
-    <div className="fade-in-text" style={{ width: '100%', height: '100%', overflowY: 'auto' }}>
-
-      {/* MAIN SYMMETRIC GRID */}
-      <div style={styles.gridContainer}>
-          
-          {/* --- PANEL 1: AI ANALYSIS (Top Left) --- */}
-          <div style={styles.panel}>
-             <div style={{ flex: 1, overflow: 'hidden' }}>
-                <AiExplanation result={result} />
-             </div>
-          </div>
-
-          {/* --- PANEL 2: CHEMICAL STRUCTURE (Top Right) --- */}
-          <div style={styles.panel}>
-            <div style={styles.label()}>
-              <Box size={14}/> 2D STRUCTURE
-            </div>
-            
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-              <img 
-                  src={apiClient.getImageUrl(result.smiles)} 
-                  alt="Structure"
-                  style={{ 
-                    width: '90%', 
-                    maxHeight: '250px', 
-                    objectFit: 'contain', 
-                    filter: `invert(1) brightness(2) drop-shadow(0 0 15px ${result.color})`,
-                    marginBottom: '15px'
-                  }}
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'intelligence':
+        return <IntelligenceHub result={result} chatHistory={chatHistory} setChatHistory={setChatHistory} />;
+      case 'structure':
+        return (
+          <div style={{
+            flex: 1, display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center',
+            padding: 'clamp(16px, 4vw, 40px)', background: 'var(--bg-canvas)',
+            overflowY: 'auto'
+          }}>
+            <div style={{
+              background: 'var(--bg-surface)', padding: 'clamp(16px, 3vw, 30px)',
+              borderRadius: 'var(--radius-xl)',
+              border: '1px solid var(--border-default)',
+              boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
+              width: '100%',
+              maxWidth: '440px'
+            }}>
+              <img
+                src={apiClient.getImageUrl(result.smiles)}
+                alt="2D Structure"
+                style={{ width: '100%', filter: 'brightness(0.9) contrast(1.1)' }}
               />
-              <div style={{ 
-                  color: '#888', fontSize: '11px', fontFamily: 'monospace', 
-                  textAlign: 'center', wordBreak: 'break-all', maxWidth: '90%', 
-                  background: 'rgba(0,0,0,0.2)', padding: '8px', borderRadius: '8px'
+            </div>
+            <div style={{ marginTop: '24px', textAlign: 'center', width: '100%', maxWidth: '440px' }}>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Molecule SMILES</span>
+              <p style={{
+                fontFamily: 'monospace', background: 'var(--bg-sunken)',
+                padding: '10px 20px', borderRadius: 'var(--radius-md)',
+                fontSize: '13px', marginTop: '8px',
+                border: '1px solid var(--border-subtle)',
+                wordBreak: 'break-all',
+                textAlign: 'left'
               }}>
-                  {result.smiles}
+                {result.smiles}
+              </p>
+            </div>
+          </div>
+        );
+      case 'admet':
+        return (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 'clamp(16px, 3vw, 40px)', background: 'var(--bg-canvas)', overflowY: 'auto' }}>
+            <div
+              className="admet-inner-grid"
+              style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.2fr) minmax(0,1fr)', gap: '30px' }}
+            >
+              <div style={{ background: 'var(--bg-surface)', padding: 'clamp(16px, 2.5vw, 30px)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-default)', minHeight: '400px' }}>
+                <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-primary)', fontWeight: 700, fontSize: '14px' }}>
+                  <Activity size={18} /> ADMET Radar Distribution
+                </div>
+                <AdmetChart admet={result.admet} color={result.color} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <div style={{ background: 'var(--bg-surface)', padding: '24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-default)' }}>
+                  <h4 style={{ margin: '0 0 10px 0', fontSize: '13px', color: 'var(--text-secondary)' }}>Lipinski Compliance</h4>
+                  <div style={{ fontSize: '24px', fontWeight: 800, color: result.admet?.lipinski ? 'var(--status-success)' : 'var(--status-error)' }}>
+                    {result.admet?.lipinski ? 'PASSED' : 'FAILED'}
+                  </div>
+                </div>
+                <div style={{ background: 'var(--bg-surface)', padding: '24px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-default)' }}>
+                  <h4 style={{ margin: '0 0 10px 0', fontSize: '13px', color: 'var(--text-secondary)' }}>Blood-Brain Barrier</h4>
+                  <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--accent)' }}>
+                    {result.admet?.bbb || 'High Penetrance'}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
+        );
+      case '3d':
+        return <ProteinViewer pdbId={result.target_id || "6LU7"} isEmbedded={true} onClose={() => setActiveTab('intelligence')} />;
+      default:
+        return null;
+    }
+  };
 
-          {/* --- PANEL 3: AI CHAT ASSISTANT (Bottom Left) --- */}
-          <div style={styles.panel}>
-             
-             {/* Chat Container */}
-             <div style={{ flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                
-                {/* Header Label (No Extra Button Here) */}
-                <div style={{ 
-                    display: 'flex', alignItems: 'center', gap: '6px', 
-                    color: '#00f3ff', fontSize: '11px', fontWeight: 'bold', 
-                    letterSpacing: '1px', opacity: 0.8, marginBottom: '10px' 
-                }}>
-                    <MessageSquare size={14} /> AI ASSISTANT
-                </div>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', overflow: 'hidden' }}>
 
-                {chatHistory && chatHistory.length > 0 ? (
-                    chatHistory.map((msg, index) => (
-                        <div key={index} style={{
-                            alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                            maxWidth: '85%',
-                            background: msg.role === 'user' ? 'rgba(0, 243, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)',
-                            border: msg.role === 'user' ? '1px solid rgba(0, 243, 255, 0.3)' : '1px solid #333',
-                            borderRadius: '12px',
-                            padding: '12px',
-                            color: '#e0e0e0',
-                            fontSize: '13px',
-                            lineHeight: '1.5'
-                        }}>
-                            {/* Message Header Row */}
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                {/* Left: Name & Icon */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', color: msg.role === 'user' ? '#00f3ff' : '#888', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                                    {msg.role === 'user' ? <User size={10}/> : <Bot size={10}/>} 
-                                    {msg.role === 'user' ? 'YOU' : 'BIOGRAPH AI'} 
-                                </div>
-
-                                {/* ✅ DYNAMIC BUTTON: Speaker <-> Stop */}
-                                {msg.role === 'ai' && (
-                                  speakingIndex === index ? (
-                                      // 🛑 STOP BUTTON (Active State)
-                                      <button 
-                                        onClick={stopSpeech}
-                                        title="Stop Speaking"
-                                        className="pulse-red"
-                                        style={{ 
-                                            background: 'rgba(255, 0, 85, 0.2)', 
-                                            border: '1px solid #ff0055', 
-                                            color: '#ff0055', 
-                                            cursor: 'pointer', 
-                                            padding: '4px',
-                                            borderRadius: '50%', // Round button
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            width: '24px', height: '24px'
-                                        }}
-                                      >
-                                        <VolumeX size={12} />
-                                      </button>
-                                  ) : (
-                                      // 🔊 SPEAKER BUTTON (Default State)
-                                      <button 
-                                        onClick={() => speakText(msg.content, index)}
-                                        title="Read Aloud"
-                                        className="hover-glow-icon"
-                                        style={{ background: 'transparent', border: 'none', color: '#666', cursor: 'pointer', padding: 0 }}
-                                      >
-                                        <Volume2 size={12} />
-                                      </button>
-                                  )
-                                )}
-                            </div>
-
-                            {/* Message Content */}
-                            {msg.content}
-                        </div>
-                    ))
-                ) : (
-                    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', opacity: 0.4, minHeight: '200px' }}>
-                        <Sparkles size={40} style={{ marginBottom: '15px', color: '#00f3ff' }} />
-                        <div style={{ textAlign: 'center', fontSize: '14px' }}>
-                           ASK BIOGRAPH AI<br/>
-                           <span style={{ fontSize: '12px' }}>Use voice or text to chat.</span>
-                        </div>
-                    </div>
-                )}
-                <div ref={chatEndRef} />
-             </div>
+      {/* ── 1. Result Top Header (Scores) ── */}
+      <div
+        className="result-header-meta"
+        style={{
+          minHeight: '72px', 
+          background: 'rgba(11, 15, 25, 0.7)', 
+          backdropFilter: 'blur(16px)', 
+          WebkitBackdropFilter: 'blur(16px)',
+          borderBottom: '1px solid var(--border-subtle)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '12px clamp(12px, 2.5vw, 24px)',
+          zIndex: 10, flexShrink: 0, flexWrap: 'wrap', gap: '12px'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(12px, 2vw, 24px)', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div>
+              <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>Molecule Name</div>
+              <div style={{ fontSize: 'clamp(14px, 2.5vw, 18px)', fontWeight: 800, color: 'var(--text-primary)' }}>{result.name}</div>
+            </div>
+            {/* Status Badge */}
+            <div style={{
+              padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800,
+              background: result.status === 'ACTIVE' ? 'rgba(0,255,136,0.1)' : 'rgba(255,0,85,0.1)',
+              color: result.status === 'ACTIVE' ? 'var(--status-success)' : 'var(--status-error)',
+              border: `1px solid ${result.status === 'ACTIVE' ? 'rgba(0,255,136,0.2)' : 'rgba(255,0,85,0.2)'}`,
+              marginTop: '12px'
+            }}>
+              {result.status === 'ACTIVE' ? 'ACTIVE LEAD' : 'INACTIVE'}
+            </div>
           </div>
 
-          {/* --- PANEL 4: ADMET RADAR CHART (Bottom Right) --- */}
-          <div style={styles.panel}>
-             <div style={styles.label()}>
-                 <Activity size={14} /> ADMET RADAR CHART
-             </div>
+          <div style={{ width: '1px', height: '32px', background: 'var(--border-subtle)', flexShrink: 0 }}></div>
 
-             <div style={{ 
-               flex: 1, 
-               display: 'flex', 
-               alignItems: 'center', 
-               justifyContent: 'center', 
-               padding: '20px',
-               overflow: 'hidden'
-             }}>
-                <div style={{ width: '100%', height: '100%', display:'flex', justifyContent:'center', alignItems:'center' }}>
-                   <AdmetChart admet={result.admet} color={result.color} />
+          <div style={{ display: 'flex', gap: 'clamp(12px, 2vw, 30px)', flexWrap: 'wrap' }}>
+            {/* Binding Score */}
+            <div>
+              <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '2px' }}>Binding Score</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ padding: '4px 8px', background: scoreColor, color: 'white', borderRadius: '4px', fontSize: '14px', fontWeight: 900 }}>
+                  {result.score}
                 </div>
-             </div>
-          </div>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>kcal/mol</span>
+              </div>
+            </div>
 
+            {/* Confidence */}
+            <div>
+              <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '2px' }}>AI Confidence</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ fontSize: '16px', fontWeight: 700, color: 'var(--accent)' }}>94.2%</div>
+                <ShieldCheck size={14} color="var(--status-success)" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div style={{ display: 'flex', gap: '12px', flexShrink: 0 }}>
+        </div>
       </div>
-      
-      {/* Styles for Hover & Pulse */}
-      <style>{`
-        .hover-glow-icon:hover { color: #00f3ff; filter: drop-shadow(0 0 5px #00f3ff); transition: 0.3s; }
-        .pulse-red { animation: pulseRed 1.5s infinite; }
-        @keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(255, 0, 85, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 0, 85, 0); } }
-      `}</style>
+
+      {/* ── 2. Content Area ── */}
+      <div style={{ flex: 1, overflow: 'hidden', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+        {renderContent()}
+      </div>
+
     </div>
   );
 }

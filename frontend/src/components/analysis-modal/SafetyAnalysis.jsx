@@ -4,13 +4,13 @@ import { ShieldCheck } from 'lucide-react';
 export default function SafetyAnalysis({ admet }) {
   return (
     <div>
-      <div className="section-title" style={{ color: '#bc13fe', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', letterSpacing: '1px' }}>
-        <ShieldCheck size={16} /> SAFETY & RULES
+      <div className="section-title" style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11px', fontWeight: 600, marginBottom: '14px', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+        <ShieldCheck size={14} /> Safety &amp; Rules
       </div>
 
       <div className="stat-row">
         <span>Lipinski Violations</span> 
-        <b style={{ color: admet.violations > 1 ? '#ff0055' : '#00ff66' }}>
+        <b style={{ color: admet.violations > 1 ? 'var(--status-error)' : 'var(--status-success)' }}>
           {admet.violations} / 4
         </b>
       </div>

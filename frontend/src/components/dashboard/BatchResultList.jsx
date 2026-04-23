@@ -2,25 +2,33 @@ import React from 'react';
 
 export default function BatchResultList({ results, aiThreshold, onItemClick }) {
   return (
-    <div className="scan-results-list" style={{ width: '100%', height: '100%', overflowY: 'auto', background: 'rgba(0,0,0,0.2)' }}>
+    <div className="scan-results-list" style={{ width: '100%', height: '100%', overflowY: 'auto', background: 'transparent' }}>
        
        {/* Sticky Header */}
-       <div className="list-header" style={{ position: 'sticky', top: 0, background: 'rgba(5, 5, 10, 0.95)', borderBottom: '1px solid #00f3ff', padding: '15px 20px', display: 'flex', justifyContent: 'space-between', color: '#00f3ff', fontWeight: 'bold' }}>
-          <div>DRUG NAME</div><div>SCORE</div>
+       <div className="list-header" style={{
+         position: 'sticky', top: 0,
+         background: 'var(--bg-secondary)',
+         borderBottom: '1px solid var(--border-subtle)',
+         padding: '12px 20px'
+       }}>
+          <div>Drug Name</div><div>Score</div>
        </div>
        
        {/* List Items */}
-       <div style={{ padding: '10px' }}>
+       <div style={{ padding: '8px' }}>
           {results.map((item, index) => {
              const isItemActive = item.score >= aiThreshold;
              return (
                <div 
                  key={index} 
                  onClick={() => onItemClick(item)} 
-                 style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 20px', marginBottom: '8px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', cursor: 'pointer' }}
+                 className="scan-item"
                >
-                  <div style={{ fontWeight: 'bold', color: '#fff' }}>{item.name}</div>
-                  <div style={{ color: isItemActive ? '#00f3ff' : '#ff0055' }}>{item.score}</div>
+                  <div className="drug-name">{item.name}</div>
+                  <div style={{ 
+                    fontWeight: 700, fontSize: '15px',
+                    color: isItemActive ? 'var(--status-success)' : 'var(--status-error)'
+                  }}>{item.score}</div>
                </div>
              );
           })}

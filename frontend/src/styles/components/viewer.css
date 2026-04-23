@@ -1,167 +1,123 @@
-/* 1. OVERLAY (Positioning Fix) */
-.viewer-overlay { 
-  position: fixed; 
-  inset: 0; 
-  background: rgba(0,0,0,0.95); 
-  -webkit-backdrop-filter: blur(5px); 
-  backdrop-filter: blur(5px); 
-  display: flex; 
-  justify-content: center; 
-  
-  /* ✅ DESKTOP FIX: */
-  align-items: flex-start; /* Center ke bajaye Top se start karega */
-  padding-top: 90px; /* Navbar (~70px) + 20px ka Gap */
-  padding-bottom: 20px; /* Neechay bhi thora gap */
-  
-  z-index: 10000; 
+/* ════════════════════════════════════════
+   PROTEIN VIEWER — Light theme overlay
+   ════════════════════════════════════════ */
+.viewer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
 }
 
-/* 2. MODAL BOX (Height Adjustment) */
-.viewer-modal { 
-  width: 100%; 
-  max-width: 1100px; 
-  
-  /* ✅ Height Calculation: Screen - (Top Padding + Bottom Padding) */
-  height: calc(100vh - 110px); 
-  
-  display: flex; 
-  background: #000; 
-  border-radius: 16px; 
-  overflow: hidden; 
-  border: 1px solid #333; 
-  box-shadow: 0 20px 50px rgba(0,0,0,0.8); 
-  flex-direction: row; 
+.viewer-modal {
+  width: 92vw;
+  height: 88vh;
+  background: #0d0d0d;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.08);
+  animation: slideUpModal 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* 3. CANVAS AREA */
-.viewer-canvas-wrap { 
-  flex: 1; 
-  position: relative; 
-  background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); 
+.viewer-canvas-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
 }
-
-.viewer-error { 
-  color: #ff4444; 
-  position: absolute; 
-  top: 50%; 
-  left: 50%; 
-  transform: translate(-50%,-50%); 
-  font-family: monospace;
-}
-
-/* 4. SIDE PANEL */
-.viewer-panel { 
-  width: 240px; 
-  padding: 20px; 
-  background: #0a0a0a; 
-  display: flex; 
-  flex-direction: column; 
-  gap: 12px; 
-  border-left: 1px solid #222; 
-  overflow-y: auto; 
-}
-
-.viewer-title { 
-  color: #00f3ff; 
-  font-weight: bold; 
-  font-size: 14px; 
-  margin-bottom: 15px; 
-  display: flex; 
-  gap: 8px; 
-  align-items: center; 
-  letter-spacing: 1px; 
-  text-transform: uppercase;
-}
-
-/* 5. BUTTONS */
-.viewer-btn { 
-  padding: 12px 16px; 
-  border-radius: 8px; 
-  cursor: pointer; 
-  display: flex; 
-  align-items: center; 
-  gap: 12px; 
-  transition: all 0.2s ease; 
-  font-size: 13px; 
-  text-align: left; 
-  background: rgba(255,255,255,0.03); 
-  border: 1px solid #333; 
-  color: #ccc; 
+.viewer-error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ff6b6b;
+  font-size: 14px;
   font-weight: 500;
+  text-align: center;
+  padding: 20px;
+  background: rgba(255,107,107,0.1);
+  border: 1px solid rgba(255,107,107,0.3);
+  border-radius: var(--radius-md);
 }
-
-.viewer-btn:hover { 
-  background: rgba(255,255,255,0.08); 
-  border-color: #555;
-  color: #fff;
+.viewer-controls-panel {
+  width: 210px;
+  flex-shrink: 0;
+  background: #0d0d0d;
+  border-left: 1px solid rgba(255,255,255,0.05);
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
 }
-
-.viewer-btn.active { 
-  background: rgba(0, 243, 255, 0.1); 
-  border-color: #00f3ff; 
-  color: #00f3ff; 
-  box-shadow: 0 0 10px rgba(0,243,255,0.1);
+.viewer-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
 }
-
-.viewer-btn.danger { 
-  background: rgba(255, 50, 50, 0.05); 
-  border-color: rgba(255, 50, 50, 0.3); 
-  color: #ff5555; 
-  margin-top: auto; 
+.viewer-pdb-id {
+  font-size: 22px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: 2px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
 }
-
-.viewer-btn.danger:hover {
-  background: rgba(255, 50, 50, 0.15); 
-  border-color: #ff4444; 
+.viewer-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin: 4px 0;
 }
-
-/* 6. RESPONSIVE DESIGN (Mobile/Tablet Only) */
-@media (max-width: 768px) {
-  .viewer-overlay {
-    padding: 10px; /* Mobile par kam gap */
-    padding-top: 10px; /* Mobile par top padding ki zaroorat nahi kyunke ye bottom se khulta hai */
-    align-items: flex-end; /* Mobile style wapis Bottom par */
-  }
-
-  .viewer-modal {
-    flex-direction: column;
-    height: 85vh; /* Mobile par height fixed */
-    border-radius: 16px;
-    max-width: 100%;
-    border: 1px solid #333;
-  }
-
-  .viewer-canvas-wrap {
-    height: 55%; 
-    flex: none;
-  }
-
-  .viewer-panel {
-    width: 100%; 
-    height: 45%;
-    border-left: none;
-    border-top: 1px solid #333;
-    padding: 15px;
-    display: grid;
-    grid-template-columns: 1fr 1fr; 
-    gap: 10px;
-    align-content: start;
-  }
-
-  .viewer-title {
-    grid-column: 1 / -1; 
-    margin-bottom: 5px;
-  }
-
-  .viewer-btn.danger {
-    grid-column: 1 / -1;
-    margin-top: 5px;
-  }
-  
-  .mobile-hidden {
-    display: none;
-  }
+.viewer-section-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: rgba(255,255,255,0.3);
+  font-weight: 700;
+  margin-bottom: 4px;
 }
-
-.spin-loader { animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.viewer-btn {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.7);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--transition-fast);
+  font-family: inherit;
+}
+.viewer-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.95);
+  border-color: rgba(255,255,255,0.15);
+}
+.viewer-btn.active {
+  background: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,1);
+  border-color: rgba(255,255,255,0.2);
+}
+.viewer-btn.close-viewer {
+  margin-top: auto;
+  color: rgba(255, 100, 100, 0.7);
+  border-color: rgba(255,100,100,0.15);
+}
+.viewer-btn.close-viewer:hover {
+  background: rgba(255, 100, 100, 0.1);
+  color: rgba(255, 100, 100, 1);
+  border-color: rgba(255,100,100,0.3);
+}
+.spin-loader { animation: spin 0.9s linear infinite; }

@@ -4,8 +4,8 @@ import { Atom } from 'lucide-react';
 export default function MolecularProperties({ admet }) {
   return (
     <div>
-      <div className="section-title" style={{ color: '#00f3ff', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 'bold', marginBottom: '15px', letterSpacing: '1px' }}>
-        <Atom size={16} /> MOLECULAR PROPERTIES
+      <div className="section-title" style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '7px', fontSize: '11px', fontWeight: 600, marginBottom: '14px', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+        <Atom size={14} /> Molecular Properties
       </div>
       
       <div className="stat-row"><span>Molecular Weight</span> <b>{admet.mw} g/mol</b></div>

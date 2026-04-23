@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Save, Sliders } from 'lucide-react';
 import '../styles/components/settings.css'; // ✅ Import CSS
 
@@ -25,15 +26,15 @@ export default function SettingsModal({ onClose }) {
     setTimeout(() => { setSaved(false); onClose(); }, 800);
   };
 
-  return (
+  return createPortal(
     <div className="settings-overlay">
       <div className="settings-modal">
         
         {/* Header */}
         <div className="settings-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Sliders size={20} color="#00f3ff" />
-            <h3 style={{ margin: 0, color: '#fff', letterSpacing: '1px' }}>SYSTEM CONFIGURATION</h3>
+            <Sliders size={17} color="var(--text-muted)" />
+            <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '14px', fontWeight: 600 }}>Settings</h3>
           </div>
           <button onClick={onClose} className="close-btn"><X size={20} /></button>
         </div>
@@ -53,6 +54,7 @@ export default function SettingsModal({ onClose }) {
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

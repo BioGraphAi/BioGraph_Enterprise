@@ -5,7 +5,7 @@ export default function DataSettings({ settings, setSettings }) {
   return (
     <div className="setting-section">
       <div className="label-group">
-        <Database size={16} color="#ff0055" />
+        <Database size={18} color="var(--accent)" />
         <span className="setting-label">Data Management</span>
       </div>
       <div className="flex-row">

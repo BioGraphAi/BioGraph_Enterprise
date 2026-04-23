@@ -13,7 +13,7 @@ TXT_PATH = os.path.join(BASE_DIR, TXT_FILE)
 def init_db():
     # 1. Check agar DB pehle se exist karta hai to reset na karein
     if os.path.exists(DB_PATH):
-        print(f"✅ Database '{DB_NAME}' already exists. Skipping reset.")
+        print(f"[SUCCESS] Database '{DB_NAME}' already exists. Skipping reset.")
         return
 
     conn = sqlite3.connect(DB_PATH)
@@ -28,7 +28,7 @@ def init_db():
     ''')
     
     if not os.path.exists(TXT_PATH):
-        print(f"❌ Error: '{TXT_FILE}' nahi mili! Path check karein: {TXT_PATH}")
+        print(f"[ERROR]: '{TXT_FILE}' nahi mili! Path check karein: {TXT_PATH}")
         return
 
     print(f"📂 Reading Samples File '{TXT_FILE}'...")
@@ -43,18 +43,18 @@ def init_db():
             
             drugs_data = df_clean.values.tolist()
             
-            print(f"✅ SMILES MIL GAYE! Total {len(drugs_data)} drugs.")
+            print(f"[SUCCESS] SMILES MIL GAYE! Total {len(drugs_data)} drugs.")
             print("⏳ Inserting into Database...")
             
             cursor.executemany('INSERT INTO drugs (name, smiles) VALUES (?, ?)', drugs_data)
             conn.commit()
-            print(f"🎉 Database ready with {len(drugs_data)} drugs.")
+            print(f"[SUCCESS] Database ready with {len(drugs_data)} drugs.")
             
         else:
-            print("❌ Ab bhi SMILES nahi mile? Columns check karein.")
+            print("[ERROR] Ab bhi SMILES nahi mile? Columns check karein.")
 
     except Exception as e:
-        print(f"❌ Database Init Error: {e}")
+        print(f"[ERROR] Database Init Error: {e}")
 
     conn.close()
 

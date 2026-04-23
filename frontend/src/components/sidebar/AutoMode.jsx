@@ -24,8 +24,8 @@ export default function AutoMode({ target, setTarget }) {
       </div>
 
       {/* ✅ FILTERS ADDED BACK */}
-      <div style={{ padding: '15px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', marginBottom: '15px' }}>
-        <div style={{ color: '#00f3ff', fontSize: '12px', fontWeight: 'bold', marginBottom: '10px' }}>DATABASE FILTERS</div>
+      <div style={{ padding: '14px', background: 'var(--bg-tertiary)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', marginBottom: '15px' }}>
+        <div style={{ color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 600, marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Database Filters</div>
         
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
           <div><label className="input-label" style={{ fontSize: '9px' }}>MIN WEIGHT</label><input className="cyber-input" style={{ height: '30px', fontSize: '11px' }} placeholder="100" /></div>
@@ -38,7 +38,7 @@ export default function AutoMode({ target, setTarget }) {
           <div><label className="input-label" style={{ fontSize: '9px' }}>TPSA</label><input className="cyber-input" style={{ height: '30px', fontSize: '11px' }} placeholder="< 140" /></div>
         </div>
         
-        <div style={{ fontSize: '10px', color: '#666', marginTop: '10px' }}>Searching Internal Library (6000+ Drugs)...</div>
+        <div style={{ fontSize: '10px', color: 'var(--text-disabled)', marginTop: '10px' }}>Searching Internal Library (6000+ Drugs)...</div>
       </div>
     </div>
   );

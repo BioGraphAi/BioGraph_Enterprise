@@ -66,15 +66,15 @@ def load_ai_model(model_filename):
     model = DeepDrugNet_V4()
     try:
         if not os.path.exists(model_path):
-             print(f"⚠️ Model file not found at: {model_path}")
+             print(f"[WARNING] Model file not found at: {model_path}")
              return None
 
         map_loc = DEVICE
         model.load_state_dict(torch.load(model_path, map_location=map_loc))
         model.to(DEVICE)
         model.eval()
-        print(f"✅ AI Model Loaded on {DEVICE}!")
+        print(f"[SUCCESS] AI Model Loaded on {DEVICE}!")
         return model
     except Exception as e:
-        print(f"⚠️ Model Load Error: {e}")
+        print(f"[ERROR] Model Load Error: {e}")
         return None

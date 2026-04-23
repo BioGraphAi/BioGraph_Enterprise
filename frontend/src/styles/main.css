@@ -1,5 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 /* 1. Core Settings */
 @import './core/variables.css';
@@ -8,6 +7,8 @@
 /* 2. Layout & Responsive */
 @import './layout/grid.css';
 @import './layout/responsive.css';
+@import './layout/layout_fixes.css';
+
 
 /* 3. Visual Effects */
 @import './effects/hologram.css';
@@ -18,3 +19,5 @@
 @import './components/sidebar.css';
 @import './components/cards.css';
 @import './components/forms.css';
+@import './components/settings.css';
+@import './components/viewer.css';

@@ -14,11 +14,11 @@ class LLMEngine:
         if self.api_key:
             try:
                 self.client = Groq(api_key=self.api_key)
-                print(f"🚀 BioGraph Intelligence v3 (Llama-3) Activated")
+                print(f"[SUCCESS] BioGraph Intelligence v3 (Llama-3) Activated")
             except Exception as e:
-                print(f"⚠️ Groq Connection Error: {e}")
+                print(f"[WARNING] Groq Connection Error: {e}")
         else:
-            print("⚠️ ERROR: GROQ_API_KEY is missing in .env file.")
+            print("[ERROR] GROQ_API_KEY is missing in .env file.")
 
     def _get_response(self, prompt, system_instruction=None):
         if not self.client:
@@ -55,7 +55,7 @@ class LLMEngine:
             )
             return completion.choices[0].message.content
         except Exception as e:
-            print(f"❌ AI Error: {e}")
+            print(f"[ERROR] AI Error: {e}")
             return "⚠️ System Overload: AI is temporarily unavailable. Please retry in a moment."
 
     def analyze_drug(self, drug_data, target_id):

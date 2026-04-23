@@ -1,5 +1,5 @@
 import torch
-import requests
+import httpx
 import pubchempy as pcp
 from rdkit import Chem
 from rdkit.Chem import ChemicalFeatures
@@ -34,16 +34,18 @@ def get_smiles_from_input(input_str):
     
     return None, None
 
-def get_protein_sequence(pdb_id):
+async def get_protein_sequence(pdb_id):
     pdb_id = pdb_id.lower().strip()
-    # ✅ FIX: Added Timeout and Error Handling
+    # ✅ FIX: Added Timeout and Error Handling with Async HTTPX
     try:
         url = f"https://www.ebi.ac.uk/pdbe/api/pdb/entry/molecules/{pdb_id}"
-        resp = requests.get(url, timeout=5)
-        if resp.status_code != 200:
-            return None
-        data = resp.json()
-        return data[pdb_id][0]['sequence']
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, timeout=5.0)
+            if resp.status_code != 200:
+                print(f"⚠️ API returned status {resp.status_code} for {pdb_id}")
+                return None
+            data = resp.json()
+            return data[pdb_id][0]['sequence']
     except Exception as e:
         print(f"⚠️ Protein Fetch Error ({pdb_id}): {e}")
         return None 
@@ -62,7 +64,8 @@ def get_pharmacophore_data(mol):
                     "desc": f.GetType()
                 })
         return pharmacophores
-    except:
+    except Exception as e:
+        print(f"⚠️ Pharmacophore Error: {e}")
         return []
 
 def process_data_object(smiles, protein_seq, max_len=1000):
@@ -79,12 +82,22 @@ def process_data_object(smiles, protein_seq, max_len=1000):
             src += [i, j]; dst += [j, i]
         edge_index = torch.tensor([src, dst], dtype=torch.long)
         
-        seq_indices = [AMINO_DICT.get(aa, 21) for aa in protein_seq]
-        if len(seq_indices) > max_len: seq_indices = seq_indices[:max_len]
-        else: seq_indices += [21] * (max_len - len(seq_indices))
+        # ✅ FIX: Handle None protein_seq and cleaner slicing/padding
+        safe_seq = protein_seq if protein_seq else ""
+        seq_indices = [AMINO_DICT.get(aa, 21) for aa in safe_seq]
+        
+        # Keep only up to max_len
+        seq_indices = seq_indices[:max_len]
+        
+        # Pad with 21 if shorter
+        if len(seq_indices) < max_len:
+            seq_indices += [21] * (max_len - len(seq_indices))
+            
         prot_tensor = torch.tensor(seq_indices, dtype=torch.long).unsqueeze(0)
         
         data = Data(x=x, edge_index=edge_index)
         data.protein = prot_tensor
         return data
-    except: return None
+    except Exception as e:
+        print(f"⚠️ Process Data Object Error for SMILES {smiles}: {e}")
+        return None

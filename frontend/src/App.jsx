@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import Navbar from './components/Navbar';
 import Toast from './components/Toast';
 import Dashboard from './pages/Dashboard';
-import About from './pages/About';
 import SettingsModal from './components/SettingsModal';
-import BackgroundEffects from './components/layout/BackgroundEffects'; // ✅ New Import
+import BackgroundEffects from './components/layout/BackgroundEffects';
 import "./styles/main.css";
 
 function App() {
@@ -19,26 +17,22 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* 1. Global UI Elements */}
+      {/* Global UI Elements */}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
 
-      {/* ✅ Background Separated */}
+      {/* Background Elements */}
       <BackgroundEffects />
 
-      {/* 2. Navigation */}
-      <Navbar 
-        showAbout={showAbout} 
-        setShowAbout={setShowAbout} 
-        onHistorySelect={setHistorySelection} 
+      {/* Dashboard with internal navigation */}
+      <Dashboard 
+        showToast={showToast} 
+        historyLoadData={historySelection}
+        showAbout={showAbout}
+        setShowAbout={setShowAbout}
+        onHistorySelect={setHistorySelection}
         onOpenSettings={() => setShowSettings(true)}
       />
-
-      {/* 3. Page Router (Slider Logic) */}
-      <div className={`slider-container ${showAbout ? 'slide-active' : ''}`}>
-        <Dashboard showToast={showToast} historyLoadData={historySelection} />
-        <About />
-      </div>
     </div>
   );
 }

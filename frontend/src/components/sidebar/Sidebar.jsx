@@ -1,61 +1,145 @@
 import React from 'react';
-import { Database, Upload, FlaskConical, ChevronsLeft, ChevronsRight, Zap } from 'lucide-react';
+import { 
+  Database, Upload, FlaskConical, PanelLeftClose, PanelLeftOpen, 
+  Dna, Info, Settings, LayoutDashboard, History 
+} from 'lucide-react';
 import ManualMode from './ManualMode';
 import AutoMode from './AutoMode';
 import UploadMode from './UploadMode';
 
 export default function Sidebar({
-  activeTab, setActiveTab, target, setTarget, smiles, setSmiles, 
-  selectedFile, setSelectedFile, fileInputRef, handleFileSelect, 
-  handleScan, loading, isSidebarOpen, setIsSidebarOpen
+  activeTab, setActiveTab, 
+  isSidebarOpen, setIsSidebarOpen,
+  showAbout, setShowAbout,
+  onHistorySelect, onOpenSettings
 }) {
-  
-  // -- COLLAPSED VIEW --
-  if (!isSidebarOpen) {
-    return (
-      <div className="glass-panel panel-left collapsed" style={{ zIndex: 50 }}>
-        <div className="sidebar-toggle-btn" onClick={() => setIsSidebarOpen(true)}><ChevronsRight size={24} /></div>
-        <div className={`sidebar-icon-btn ${activeTab === 'manual' ? 'active' : ''}`} onClick={() => { setActiveTab('manual'); setIsSidebarOpen(true); }}><FlaskConical size={24} /></div>
-        <div className={`sidebar-icon-btn ${activeTab === 'auto' ? 'active' : ''}`} onClick={() => { setActiveTab('auto'); setIsSidebarOpen(true); }}><Database size={24} /></div>
-        <div className={`sidebar-icon-btn ${activeTab === 'upload' ? 'active' : ''}`} onClick={() => { setActiveTab('upload'); setIsSidebarOpen(true); }}><Upload size={24} /></div>
-      </div>
-    );
-  }
+  const isOpen = isSidebarOpen;
 
-  // -- EXPANDED VIEW --
+  const navItems = [
+    { key: 'manual', label: 'Manual Discovery', icon: FlaskConical },
+    { key: 'auto',   label: 'Auto Discovery',   icon: Database },
+    { key: 'upload', label: 'Bulk Upload',      icon: Upload },
+  ];
+
   return (
-    <div className="glass-panel panel-left" style={{ zIndex: 50 }}>
-      <div className="panel-header" style={{ justifyContent: 'space-between', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Database size={20} color="#00f3ff" />
-          <h3 className="panel-title">INPUT CONFIG</h3>
-        </div>
-        <div className="mobile-hide" onClick={() => setIsSidebarOpen(false)} style={{ cursor: 'pointer', padding: '5px' }}><ChevronsLeft size={20} color="#666" /></div>
+    <div className={`glass-panel panel-left${isOpen ? '' : ' collapsed'}`} style={{ zIndex: 110 }}>
+
+      {/* ── Sidebar Header ── */}
+      <div className="sidebar-header" style={{ padding: isOpen ? '16px' : '12px 0' }}>
+        {isOpen ? (
+          <>
+            <div className="sidebar-brand" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', width: '100%' }}>
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1))',
+                border: '1px solid rgba(99, 102, 241, 0.2)',
+                width: '30px',
+                height: '30px',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <Dna size={18} color="var(--accent)" strokeWidth={2} />
+              </div>
+              <span className="sidebar-brand-name" style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.5px', margin: 0, padding: 0 }}>BioGraph</span>
+            </div>
+            <button
+              className="sidebar-toggle-btn"
+              onClick={() => setIsSidebarOpen(false)}
+              title="Collapse"
+            >
+              <PanelLeftClose size={17} />
+            </button>
+          </>
+        ) : (
+          <button
+            className="sidebar-toggle-btn"
+            onClick={() => setIsSidebarOpen(true)}
+            title="Expand"
+            style={{ margin: '0 auto' }}
+          >
+            <PanelLeftOpen size={17} />
+          </button>
+        )}
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', paddingRight: '5px', minHeight: 0 }}>
-        {/* TABS */}
-        <div className="tab-group" style={{ position: 'relative', zIndex: 51 }}>
-          <button className={`tab-btn ${activeTab === 'manual' ? 'active' : ''}`} onClick={() => setActiveTab('manual')}>MANUAL</button>
-          <button className={`tab-btn ${activeTab === 'auto' ? 'active' : ''}`} onClick={() => setActiveTab('auto')}>AUTO DB</button>
-          <button className={`tab-btn ${activeTab === 'upload' ? 'active' : ''}`} onClick={() => setActiveTab('upload')}>UPLOAD</button>
+      {/* ── Main Navigation ── */}
+      <div className="sidebar-content" style={{ padding: isOpen ? '16px' : '10px 0' }}>
+        {isOpen && <span className="sidebar-title">Discovery</span>}
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: isOpen ? '8px' : '0' }}>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.key && !showAbout;
+            
+            return (
+              <button
+                key={item.key}
+                className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
+                onClick={() => {
+                   setActiveTab(item.key);
+                   setShowAbout(false);
+                }}
+                title={!isOpen ? item.label : ''}
+                style={{ 
+                  justifyContent: isOpen ? 'flex-start' : 'center',
+                  padding: isOpen ? '10px 14px' : '10px 0',
+                  width: isOpen ? '100%' : '44px',
+                  margin: isOpen ? '0' : '0 auto'
+                }}
+              >
+                <Icon size={18} />
+                {isOpen && <span>{item.label}</span>}
+              </button>
+            );
+          })}
         </div>
 
-        {/* MODE CONTENT - Clean Switch Logic */}
-        {activeTab === 'manual' && <ManualMode target={target} setTarget={setTarget} smiles={smiles} setSmiles={setSmiles} />}
-        {activeTab === 'auto' && <AutoMode target={target} setTarget={setTarget} />}
-        {activeTab === 'upload' && <UploadMode target={target} setTarget={setTarget} fileInputRef={fileInputRef} handleFileSelect={handleFileSelect} selectedFile={selectedFile} setSelectedFile={setSelectedFile} />}
-      
-      </div>
+        {isOpen ? (
+          <div className="sidebar-nav-extra" style={{ marginTop: '24px' }}>
+            <span className="sidebar-title">Platform</span>
+            
+            <button 
+              className={`sidebar-nav-item ${showAbout ? 'active' : ''}`}
+              onClick={() => setShowAbout(true)}
+              style={{ padding: '10px 14px', marginTop: '8px', width: '100%', border: 'none', background: 'transparent' }}
+            >
+              <Info size={17} />
+              <span>About BioGraph</span>
+            </button>
 
-      {/* FOOTER BUTTON */}
-      <div style={{ marginTop: 'auto', flexShrink: 0, paddingTop: '15px' }}>
-        <button className="cyber-btn" onClick={handleScan} disabled={loading} style={{ pointerEvents: 'auto', zIndex: 52 }}>
-          <div className="btn-content">
-            {loading ? <span className="animate-spin" style={{ display: 'inline-block' }}><Zap size={20} /></span> : <Zap size={20} />}
-            {loading ? "PROCESSING..." : (activeTab === 'manual' ? "INITIATE ANALYSIS" : "START PROCESS")}
+            <button 
+              className={`sidebar-nav-item ${activeTab === 'history' && !showAbout ? 'active' : ''}`}
+              onClick={() => { setActiveTab('history'); setShowAbout(false); }}
+              style={{ padding: '10px 14px', width: '100%', border: 'none', background: 'transparent' }}
+            >
+              <History size={17} />
+              <span>History</span>
+            </button>
+
+            <button 
+              className="sidebar-nav-item" 
+              onClick={onOpenSettings}
+              style={{ padding: '10px 14px', width: '100%', border: 'none', background: 'transparent' }}
+            >
+              <Settings size={17} />
+              <span>Settings</span>
+            </button>
           </div>
-        </button>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', alignItems: 'center', marginTop: '20px', borderTop: '1px solid var(--sidebar-border)', paddingTop: '16px' }}>
+            <button className="sidebar-icon-btn" onClick={() => setShowAbout(true)} title="About">
+              <Info size={17} />
+            </button>
+            <button className="sidebar-icon-btn" onClick={() => { setActiveTab('history'); setShowAbout(false); }} title="History">
+              <History size={17} />
+            </button>
+            <button className="sidebar-icon-btn" onClick={onOpenSettings} title="Settings">
+              <Settings size={17} />
+            </button>
+          </div>
+        )}
       </div>
 
     </div>

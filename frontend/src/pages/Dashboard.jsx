@@ -1,24 +1,33 @@
 import React, { useState } from 'react'; 
 import { useDashboardLogic } from '../hooks/useDashboardLogic';
+import { Menu } from 'lucide-react';
 
 // Components
 import Sidebar from '../components/sidebar/Sidebar';
 import HeaderStatus from '../components/dashboard/HeaderStatus';
-import HologramDisplay from '../components/dashboard/HologramDisplay';
+import DiscoveryDashboard from '../components/dashboard/DiscoveryDashboard';
 import SingleResultDisplay from '../components/dashboard/SingleResultDisplay';
 import BatchResultList from '../components/dashboard/BatchResultList';
-import ResultCard from '../components/ResultCard';
+import HologramDisplay from '../components/dashboard/HologramDisplay';
+import ResultSidebar from '../components/sidebar/ResultSidebar'; 
+import HistorySummaryView from '../components/dashboard/HistorySummaryView';
+import HistoryPage from '../components/dashboard/HistoryPage';
+import KnowledgeGraph from '../components/dashboard/KnowledgeGraph';
 
 // Modals
-import AnalysisModal from '../components/AnalysisModal';
-import ProteinViewer from '../components/ProteinViewer';
+import About from './About';
 
-const Dashboard = ({ showToast, historyLoadData }) => {
+const Dashboard = ({ 
+  showToast, historyLoadData, 
+  showAbout, setShowAbout, 
+  onHistorySelect, onOpenSettings,
+  summaryItem, setSummaryItem
+}) => {
   const {
     activeTab, setActiveTab,
     target, setTarget,
     smiles, setSmiles,
-    loading, progress,
+    loading, progress, progressDetail,
     result, setResult,
     batchResults,
     isSidebarOpen, setIsSidebarOpen,
@@ -28,24 +37,22 @@ const Dashboard = ({ showToast, historyLoadData }) => {
     handleFileSelect,
     handleScan,
     handleDrugClick,
-    cardRef,
-    chatHistory, setChatHistory // ✅ From Hook
+    chatHistory, setChatHistory,
+    resultActiveTab, setResultActiveTab,
+    isResultSidebarOpen, setIsResultSidebarOpen,
+    viewMode, setViewMode
   } = useDashboardLogic(showToast, historyLoadData);
 
   // Local UI State
-  const [showModal, setShowModal] = useState(false);
-  const [show3D, setShow3D] = useState(false);
   const [downloading, setDownloading] = useState(false);
   
-  // ❌ REMOVED: Local chatHistory useState
-  // ❌ REMOVED: useEffect that caused the warning
-
   // Download Logic
   const downloadReport = async () => {
     if (!result) return;
     setDownloading(true);
     try {
-      const response = await fetch('http://localhost:8000/download_report', {
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const response = await fetch(`${BASE_URL}/download_report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -79,53 +86,123 @@ const Dashboard = ({ showToast, historyLoadData }) => {
 
   return (
     <div className="page-section" style={{ position: 'relative' }}>
-      <div className="main-layout">
-        <Sidebar
-          activeTab={activeTab} setActiveTab={setActiveTab}
-          target={target} setTarget={setTarget}
-          smiles={smiles} setSmiles={setSmiles}
-          selectedFile={selectedFile} fileInputRef={fileInputRef}
-          setSelectedFile={setSelectedFile}
-          handleFileSelect={handleFileSelect} handleScan={handleScan}
-          loading={loading} isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}
-        />
 
-        <div className={`glass-panel panel-right ${!isSidebarOpen ? 'expanded' : ''}`} style={{ zIndex: 50 }}>
-          <HeaderStatus 
-            loading={loading} 
-            aiThreshold={aiThreshold} 
-            result={result} 
-            activeTab={activeTab} 
-            onBack={() => setResult(null)}
-            onView={() => setShowModal(true)}
-            on3D={() => setShow3D(true)}
-            onDownload={downloadReport}
-            downloading={downloading}
-          />
-
-          <div style={{ flex: 1, position: 'relative', display: 'flex', height: 'calc(100% - 60px)' }}>
-            {(loading || (!result && batchResults.length === 0)) ? (
-               <HologramDisplay loading={loading} progress={progress} activeTab={activeTab} />
-            ) : result ? (
-               <SingleResultDisplay result={result} chatHistory={chatHistory} />
-            ) : (
-               <BatchResultList results={batchResults} aiThreshold={aiThreshold} onItemClick={handleDrugClick} />
-            )}
-          </div>
-        </div>
-      </div>
-      
-      {result && (
-        <ResultCard 
-          result={result} 
-          cardRef={cardRef} 
-          isSidebarOpen={isSidebarOpen} 
-          setChatHistory={setChatHistory} 
+      {/* ── Mobile Backdrop (closes sidebar on tap) ── */}
+      {isSidebarOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setIsSidebarOpen(false)}
+          aria-label="Close sidebar"
         />
       )}
 
-      {show3D && <ProteinViewer pdbId={target || "6LU7"} onClose={() => setShow3D(false)} />}
-      {showModal && <AnalysisModal result={result} onClose={() => setShowModal(false)} />}
+      <div className="main-layout" style={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden' }}>
+        
+        {/* LEFT Sidebar */}
+        <Sidebar
+          activeTab={activeTab} setActiveTab={setActiveTab}
+          isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen}
+          showAbout={showAbout}
+          setShowAbout={setShowAbout}
+          onHistorySelect={onHistorySelect}
+          onOpenSettings={onOpenSettings}
+        />
+
+        {/* CENTER Panel */}
+        <div className={`glass-panel panel-right ${!isSidebarOpen ? 'expanded' : ''}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', zIndex: 50, minWidth: 0 }}>
+          {!showAbout && !summaryItem && (
+            <HeaderStatus 
+              loading={loading} 
+              aiThreshold={aiThreshold} 
+              result={result} 
+              activeTab={activeTab} 
+              onBack={() => setResult(null)}
+              onDownload={downloadReport}
+              downloading={downloading}
+              onToggleSidebar={() => setIsSidebarOpen(v => !v)}
+            />
+          )}
+
+          <div style={{ flex: 1, position: 'relative', display: 'flex', height: (showAbout || summaryItem || activeTab === 'history') ? '100%' : 'calc(100% - 54px)', overflow: 'hidden' }}>
+            {showAbout ? (
+              <About />
+            ) : summaryItem ? (
+              <HistorySummaryView 
+                data={summaryItem} 
+                onClose={() => setSummaryItem(null)} 
+                onOpenDetails={() => { onHistorySelect(summaryItem); setSummaryItem(null); }} 
+              />
+            ) : activeTab === 'history' ? (
+              <HistoryPage onSelectHistoryItem={setSummaryItem} />
+            ) : loading ? (
+                <HologramDisplay loading={loading} progress={progress} progressDetail={progressDetail} activeTab={activeTab} />
+            ) : result ? (
+               <SingleResultDisplay 
+                 result={result} 
+                 chatHistory={chatHistory} 
+                 setChatHistory={setChatHistory}
+                 activeTab={resultActiveTab}
+                 setActiveTab={setResultActiveTab}
+               />
+            ) : batchResults.length > 0 ? (
+               <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
+                 <div style={{ 
+                   padding: '12px 24px', 
+                   borderBottom: '1px solid var(--border-subtle)', 
+                   display: 'flex', 
+                   justifyContent: 'flex-end', 
+                   gap: '12px', 
+                   background: 'var(--bg-surface)',
+                   flexShrink: 0
+                 }}>
+                   <button 
+                     className={`tab-btn ${viewMode === 'list' ? 'active' : ''}`}
+                     onClick={() => setViewMode('list')}
+                     style={{ fontSize: '13px', padding: '6px 16px', borderRadius: '8px' }}
+                   >
+                     Table View
+                   </button>
+                   <button 
+                     className={`tab-btn ${viewMode === '3d' ? 'active' : ''}`}
+                     onClick={() => setViewMode('3d')}
+                     style={{ fontSize: '13px', padding: '6px 16px', borderRadius: '8px' }}
+                   >
+                     3D Network Graph
+                   </button>
+                 </div>
+                 <div style={{ flex: 1, overflow: 'hidden' }}>
+                   {viewMode === 'list' ? (
+                     <BatchResultList results={batchResults} aiThreshold={aiThreshold} onItemClick={handleDrugClick} />
+                   ) : (
+                     <div style={{ padding: '24px', height: '100%', boxSizing: 'border-box' }}>
+                       <KnowledgeGraph targetId={target} activeDrugs={batchResults} />
+                     </div>
+                   )}
+                 </div>
+               </div>
+            ) : (
+               <DiscoveryDashboard 
+                  activeTab={activeTab}
+                  target={target} setTarget={setTarget}
+                  smiles={smiles} setSmiles={setSmiles}
+                  selectedFile={selectedFile} setSelectedFile={setSelectedFile}
+                  fileInputRef={fileInputRef} handleFileSelect={handleFileSelect}
+                  handleScan={handleScan} loading={loading}
+               />
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT Sidebar */}
+        {result && !showAbout && (
+           <ResultSidebar 
+             activeTab={resultActiveTab} 
+             setActiveTab={setResultActiveTab} 
+             isOpen={isResultSidebarOpen} 
+             setIsOpen={setIsResultSidebarOpen} 
+           />
+        )}
+      </div>
     </div>
   );
 };

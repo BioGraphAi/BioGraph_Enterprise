@@ -15,12 +15,12 @@ const CustomTooltip = ({ active, payload }) => {
 
     return (
       <div style={{
-        background: 'rgba(5, 10, 20, 0.98)',
-        border: `1px solid ${isViolation ? '#ff0055' : 'rgba(0, 243, 255, 0.5)'}`,
-        padding: '12px',
-        borderRadius: '8px',
-        boxShadow: `0 4px 20px ${isViolation ? 'rgba(255, 0, 85, 0.4)' : 'rgba(0, 0, 0, 0.6)'}`,
-        minWidth: '160px',
+        background: 'var(--bg-elevated)',
+        border: `1px solid ${isViolation ? 'var(--status-error)' : 'var(--border-default)'}`,
+        padding: '11px',
+        borderRadius: 'var(--radius-sm)',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.5)',
+        minWidth: '150px',
         backdropFilter: 'blur(10px)'
       }}>
         <p style={{ color: '#fff', fontSize: '13px', margin: '0 0 8px 0', fontWeight: 'bold', borderBottom:'1px solid #333', paddingBottom:'4px' }}>
@@ -29,12 +29,12 @@ const CustomTooltip = ({ active, payload }) => {
         
         <div style={{ display:'flex', justifyContent:'space-between', fontSize:'12px', marginBottom:'4px' }}>
           <span style={{color:'#888'}}>Detected:</span>
-          <span style={{color: isViolation ? '#ff0055' : '#00f3ff', fontWeight:'bold'}}>{data.fullMark}</span>
+          <span style={{color: isViolation ? 'var(--status-error)' : 'var(--text-secondary)', fontWeight: 600}}>{data.fullMark}</span>
         </div>
 
         <div style={{ display:'flex', justifyContent:'space-between', fontSize:'12px', marginBottom:'6px' }}>
           <span style={{color:'#888'}}>Ideal Range:</span>
-          <span style={{color:'#00ff88', fontSize:'11px'}}>{data.limit}</span>
+          <span style={{color:'var(--status-success)', fontSize:'11px'}}>{data.limit}</span>
         </div>
 
         <div style={{ fontSize: '10px', color: isViolation ? '#ff99aa' : '#666', fontStyle:'italic' }}>
@@ -72,11 +72,11 @@ export default function AdmetChart({ admet }) {
       
       {/* Title & Dynamic Status */}
       <div style={{ position: 'absolute', top: 0, left: 10, zIndex: 5 }}>
-         <div style={{ fontSize: '10px', color: '#00f3ff', opacity: 0.8, letterSpacing: '1px', fontWeight:'bold' }}>
+         <div style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.5px', fontWeight: 600 }}>
             BIOAVAILABILITY RADAR
          </div>
          <div style={{ fontSize: '10px', fontWeight: 'bold', marginTop:'2px' }}>
-            Status: <span style={{ color: totalViolations > 0 ? '#ff0055' : '#00ff88' }}>
+            Status: <span style={{ color: totalViolations > 0 ? 'var(--status-error)' : 'var(--status-success)', fontWeight: 600 }}>
               {totalViolations > 0 ? `⚠️ ${totalViolations} Violations` : '✅ Optimal'}
             </span>
          </div>
@@ -93,7 +93,7 @@ export default function AdmetChart({ admet }) {
               const item = data.find(d => d.subject === payload.value);
               const isBad = item.A > item.ideal;
               return (
-                <text x={x} y={y} textAnchor="middle" fill={isBad ? '#ff0055' : '#888'} fontSize={9} fontWeight="bold">
+                <text x={x} y={y} textAnchor="middle" fill={isBad ? 'var(--status-error)' : 'var(--text-muted)'} fontSize={9} fontWeight="bold">
                   {payload.value}
                 </text>
               );
@@ -106,26 +106,26 @@ export default function AdmetChart({ admet }) {
           <Radar
             name="Safe Limit"
             dataKey="ideal"
-            stroke="rgba(0, 255, 136, 0.4)"
+            stroke="rgba(74, 222, 128, 0.4)"
             strokeDasharray="4 4"
-            fill="#00ff88"
-            fillOpacity={0.05} 
+            fill="#4ade80"
+            fillOpacity={0.06}
           />
 
           {/* 2. ACTUAL DRUG DATA (With Dynamic Color) */}
           <Radar
             name="Drug Candidate"
             dataKey="A"
-            stroke={totalViolations > 2 ? '#ff0055' : '#00f3ff'}
+            stroke={totalViolations > 2 ? 'var(--status-error)' : 'var(--text-primary)'}
             strokeWidth={2}
-            fill={totalViolations > 2 ? '#ff0055' : '#00f3ff'}
-            fillOpacity={0.3}
+            fill={totalViolations > 2 ? 'var(--status-error)' : 'var(--text-primary)'}
+            fillOpacity={totalViolations > 2 ? 0.2 : 0.15}
             isAnimationActive={true}
             dot={({ cx, cy, payload }) => {
               if (payload.A > payload.ideal) {
-                return <circle cx={cx} cy={cy} r={4} fill="#ff0055" className="pulse-red" />;
+                return <circle cx={cx} cy={cy} r={4} fill="var(--status-error)" className="pulse-red" />;
               }
-              return <circle cx={cx} cy={cy} r={2} fill="#00f3ff" />;
+              return <circle cx={cx} cy={cy} r={2} fill="var(--text-secondary)" />;
             }}
           />
           
@@ -140,11 +140,11 @@ export default function AdmetChart({ admet }) {
         display:'flex', justifyContent:'center', gap:'15px', fontSize:'9px', color:'#666' 
       }}>
          <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
-            <div style={{width:'8px', height:'8px', background:'rgba(0, 255, 136, 0.1)', border:'1px solid rgba(0, 255, 136, 0.5)'}}></div>
+            <div style={{width:'7px', height:'7px', background:'rgba(74, 222, 128, 0.1)', border:'1px solid rgba(74, 222, 128, 0.4)'}}></div>
             <span>Ideal Zone</span>
          </div>
          <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
-            <div style={{width:'8px', height:'8px', background: totalViolations > 2 ? 'rgba(255,0,85,0.3)' : 'rgba(0, 243, 255, 0.3)', border: totalViolations > 2 ? '1px solid #ff0055' : '1px solid #00f3ff'}}></div>
+            <div style={{width:'7px', height:'7px', background: totalViolations > 2 ? 'rgba(248,113,113,0.2)' : 'rgba(255, 255, 255, 0.1)', border: totalViolations > 2 ? '1px solid var(--status-error)' : '1px solid var(--border-default)'}}></div>
             <span>Your Molecule {totalViolations > 0 && " (Warning)"}</span>
          </div>
       </div>

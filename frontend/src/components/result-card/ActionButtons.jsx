@@ -1,74 +1,48 @@
 import React from 'react';
-import { FileText, Box, Download, Loader } from 'lucide-react';
+import { Download, Loader } from 'lucide-react';
 
-export default function ActionButtons({ result, onView, on3D, onDownload, downloading, layout = 'column' }) {
-  
-  // Internal Style Helper
-  const buttonStyle = (color) => ({
-    background: 'rgba(255,255,255,0.05)',
-    border: `1px solid ${color}`,
-    color: color,
-    padding: '6px 12px',
-    borderRadius: '6px',
+export default function ActionButtons({ onDownload, downloading }) {
+
+  const buttonStyle = {
+    background: 'var(--bg-sunken)',
+    border: '1px solid var(--border-default)',
+    color: 'var(--text-secondary)',
+    padding: '8px 16px',
+    borderRadius: 'var(--radius-md)',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '8px',
-    fontSize: '11px',
-    fontWeight: 'bold',
-    letterSpacing: '1px',
-    transition: '0.3s',
-    minWidth: '95px' 
-  });
+    fontSize: '13px',
+    fontWeight: 600,
+    transition: 'all var(--transition-fast)',
+    fontFamily: 'inherit'
+  };
+
+  const hoverIn  = e => { 
+    e.currentTarget.style.background = 'var(--text-primary)'; 
+    e.currentTarget.style.color = 'var(--bg-canvas)'; 
+  };
+  const hoverOut = e => { 
+    e.currentTarget.style.background = 'var(--bg-sunken)'; 
+    e.currentTarget.style.color = 'var(--text-secondary)'; 
+  };
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: layout, // ✅ Layout prop control karega (row/column)
-      gap: '8px' 
-    }}>
-            
-      {/* VIEW Button */}
-      {result.admet && (
-        <button 
-          onClick={onView}
-          title="VIEW FULL REPORT" 
-          className="hover-glow"
-          style={buttonStyle(result.color)}
-        >
-          <FileText size={14} />VIEW ANALYSIS
-        </button>
-      )}
-
-      {/* 3D Button */}
-      <button 
-        onClick={on3D} 
-        title="VIEW 3D STRUCTURE" 
-        className="hover-glow"
-        style={buttonStyle('#bc13fe')} 
-      >
-        <Box size={14} /> 3D MODEL
-      </button>
-
-      {/* PDF Button */}
-      <button 
+    <div style={{ display: 'flex', gap: '8px' }}>
+      {/* PDF Download Button */}
+      <button
         onClick={onDownload}
         disabled={downloading}
-        title="DOWNLOAD LAB REPORT" 
-        className="hover-glow"
-        style={buttonStyle(result.color)}
+        title="Download Lab Report"
+        style={{ ...buttonStyle, opacity: downloading ? 0.6 : 1 }}
+        onMouseEnter={hoverIn}
+        onMouseLeave={hoverOut}
       >
-        {downloading ? <Loader size={14} className="spin" /> : <Download size={14} />} 
-       DOWNLOAD REPORT
+        {downloading ? <Loader size={15} className="animate-spin" /> : <Download size={15} />}
+        {downloading ? 'Generating...' : 'Download Report'}
       </button>
-
-      <style>{`
-        .hover-glow:hover { filter: brightness(1.2); box-shadow: 0 0 15px currentColor; }
-        .spin { animation: spin 1s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-      `}</style>
-
     </div>
   );
 }

@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+pandas
 python-dotenv
 requests
 pubchempy
@@ -7,4 +8,5 @@ rdkit
 torch
 torch-geometric
 reportlab
-groq  # ✅ Llama 3 ke liye zaroori hai
+groq
+httpx

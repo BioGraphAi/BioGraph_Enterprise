@@ -2,7 +2,7 @@ from fastapi import APIRouter, Response
 from rdkit.Chem import Draw
 from urllib.parse import unquote
 from modules.chemistry import get_smiles_from_input
-from modules.state import SCAN_PROGRESS # ✅ IMPORTED SHARED STATE
+from modules.state import get_progress # ✅ IMPORTED SHARED STATE
 
 router = APIRouter()
 
@@ -11,13 +11,14 @@ def read_root():
     return {"status": "online", "message": "BioGraph Engine is Modular & Ready"}
 
 @router.get("/progress")
-def get_progress():
-    # ✅ Ab ye wahi progress dikhayega jo analysis.py update karega
-    if SCAN_PROGRESS["total"] == 0:
+def fetch_progress(session_id: str = "default_session"):
+    # ✅ Ab ye wahi progress dikhayega jo is session ki hogi
+    prog = get_progress(session_id)
+    if prog["total"] == 0:
         return {"progress": 0, "status": "Idle"}
     
-    perc = int((SCAN_PROGRESS["current"] / SCAN_PROGRESS["total"]) * 100)
-    return {"progress": perc, "status": SCAN_PROGRESS["status"]}
+    perc = int((prog["current"] / prog["total"]) * 100)
+    return {"progress": perc, "status": prog["status"]}
 
 @router.get("/molecule_image")
 def get_molecule_image(smiles: str):

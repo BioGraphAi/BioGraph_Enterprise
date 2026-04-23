@@ -8,6 +8,7 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
   const [smiles, setSmiles] = useState('');
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [progressDetail, setProgressDetail] = useState({ current: 0, total: 0, status: '' });
   const [result, setResult] = useState(null);
   const [batchResults, setBatchResults] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -15,7 +16,12 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [aiThreshold, setAiThreshold] = useState(7.0);
   
-  // ✅ NEW: Chat History State moved here
+  // ✅ Result Sidebar / Content states
+  const [resultActiveTab, setResultActiveTab] = useState('intelligence');
+  const [isResultSidebarOpen, setIsResultSidebarOpen] = useState(true);
+  const [viewMode, setViewMode] = useState('list'); // 'list' or '3d'
+
+  // ✅ Chat History State
   const [chatHistory, setChatHistory] = useState([]);
 
   const fileInputRef = useRef(null);
@@ -37,7 +43,8 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
     if (historyLoadData) {
       setResult(historyLoadData);
       setBatchResults([]);
-      setChatHistory([]); // ✅ Clear chat on history load
+      setChatHistory([]); 
+      setResultActiveTab('intelligence'); // Reset tab on load
       showToast(`History Loaded: ${historyLoadData.name}`, 'success');
     }
   }, [historyLoadData, showToast]);
@@ -62,7 +69,7 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
     setResult(null); 
     setBatchResults([]); 
     setSelectedId(null);
-    setChatHistory([]); // ✅ Clear chat on tab change
+    setChatHistory([]); 
     if (!isSidebarOpen) setIsSidebarOpen(true);
   };
 
@@ -72,14 +79,15 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
 
   const handleDrugClick = (drug) => {
     setSelectedId(drug.name);
-    setChatHistory([]); // ✅ Clear chat immediately when new drug is clicked
+    setChatHistory([]); 
+    setResultActiveTab('intelligence'); // Switch to intelligence on click
     
     const isActive = drug.score >= aiThreshold;
     const newResult = {
       score: drug.score,
       status: isActive ? 'ACTIVE' : 'INACTIVE',
       confidence: drug.confidence || "N/A",
-      color: isActive ? '#00f3ff' : '#ff0055',
+      color: isActive ? 'var(--status-success)' : 'var(--status-error)',
       name: drug.name,
       smiles: drug.smiles || smiles,
       admet: drug.admet
@@ -103,65 +111,97 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
     setResult(null); 
     setBatchResults([]); 
     setSelectedId(null);
-    setChatHistory([]); // ✅ Clear chat on new scan start
+    setChatHistory([]);
+    setResultActiveTab('intelligence');
     
     let progressInterval = null;
 
     try {
-      if (activeTab === 'auto') {
-        progressInterval = setInterval(async () => {
-          const data = await apiClient.getProgress();
-          if (data) setProgress(data.progress);
-        }, 500);
-      }
-
-      let data;
+      const sessionId = Math.random().toString(36).substring(2, 15);
+      
+      let initialResponse;
       if (activeTab === 'upload') {
-        data = await apiClient.upload(selectedFile, safeTarget);
+        initialResponse = await apiClient.upload(selectedFile, safeTarget, sessionId);
       } else {
-        data = await apiClient.analyze({
+        initialResponse = await apiClient.analyze({
           target_id: safeTarget,
           smiles: safeSmiles,
-          mode: activeTab
+          mode: activeTab,
+          task_id: sessionId
         });
       }
 
-      if (data.error) {
-        showToast(data.error, "error");
-      } else if (data.results) {
-        setBatchResults(data.results);
-        showToast(`Found ${data.results.length} candidates`, "success");
-      } else {
-        const scoreValue = data.score !== undefined ? data.score : 0;
-        const isActive = scoreValue >= aiThreshold;
-        
-        const finalData = {
-            ...data,
-            confidence: data.confidence || "N/A",
-            status: isActive ? 'ACTIVE' : 'INACTIVE',
-            color: isActive ? '#00f3ff' : '#ff0055'
-        };
+      if (initialResponse.error) {
+        showToast(initialResponse.error, "error");
+        setLoading(false);
+        return;
+      }
 
-        setResult(finalData);
-        showToast("Analysis Complete", "success");
-        saveToHistory(finalData);
+      // Polling Loop for Results
+      let completed = false;
+      let pollCount = 0;
+      
+      while (!completed && pollCount < 100) { // Safety timeout
+        pollCount++;
+        const pollData = await apiClient.getProgress(sessionId);
+        
+        if (pollData) {
+          if (pollData.progress !== undefined) setProgress(pollData.progress);
+          setProgressDetail({
+            current: pollData.current || 0,
+            total: pollData.total || 0,
+            status: pollData.status || ''
+          });
+          
+          if (pollData.status === 'Done') {
+            const finalData = pollData.result;
+            
+            if (finalData && finalData.results) {
+              // Batch results (Auto/Upload)
+              setBatchResults(finalData.results);
+              showToast(`Found ${finalData.results.length} candidates`, "success");
+            } else if (finalData) {
+              // Single result (Manual)
+              const scoreValue = finalData.score !== undefined ? finalData.score : 0;
+              const isActive = scoreValue >= aiThreshold;
+              
+              const formattedData = {
+                  ...finalData,
+                  confidence: finalData.confidence || "N/A",
+                  status: isActive ? 'ACTIVE' : 'INACTIVE',
+                  color: isActive ? 'var(--status-success)' : 'var(--status-error)'
+              };
+
+              setResult(formattedData);
+              showToast("Analysis Complete", "success");
+              saveToHistory(formattedData);
+            }
+            completed = true;
+          } else if (pollData.status === 'FAILED') {
+            showToast(pollData.error || "Analysis Failed", "error");
+            completed = true;
+          }
+        }
+        
+        if (!completed) {
+          await new Promise(r => setTimeout(r, 1000));
+        }
       }
 
     } catch (error) {
       console.error(error);
       showToast("Server Error or Network Issue", "error");
     } finally {
-      if (progressInterval) clearInterval(progressInterval);
-      setProgress(100); setLoading(false);
+      setProgress(100); 
+      setLoading(false);
     }
   };
 
-  // Return everything including Chat State
   return {
     activeTab, setActiveTab: handleTabChange,
     target, setTarget,
     smiles, setSmiles,
-    loading, progress,
+    loading, progress, progressDetail,
     result, setResult,
     batchResults,
     selectedId,
@@ -172,6 +212,10 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
     handleFileSelect,
     handleScan,
     handleDrugClick,
-    chatHistory, setChatHistory // ✅ Exporting Chat State
+    chatHistory, setChatHistory,
+    // ✅ Export New States
+    resultActiveTab, setResultActiveTab,
+    isResultSidebarOpen, setIsResultSidebarOpen,
+    viewMode, setViewMode
   };
 };

@@ -5,7 +5,7 @@ export default function VisualSettings({ settings, setSettings }) {
   return (
     <div className="setting-section">
       <div className="label-group">
-        <Monitor size={16} color="#00f3ff" />
+        <Monitor size={18} color="var(--accent)" />
         <span className="setting-label">3D Visualization Defaults</span>
       </div>
       

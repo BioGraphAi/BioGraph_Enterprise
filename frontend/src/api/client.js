@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8000';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 const handleResponse = async (response) => {
   if (!response.ok) {
@@ -25,11 +25,12 @@ export const apiClient = {
   },
 
   // 2. Upload File
-  upload: async (file, targetId) => {
+  upload: async (file, targetId, sessionId = 'default_session') => {
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('target_id', targetId);
+      formData.append('session_id', sessionId);
 
       const response = await fetch(`${BASE_URL}/upload`, {
         method: 'POST',
@@ -58,13 +59,13 @@ export const apiClient = {
       return { answer: "Server connection failed." };
     }
   },
-  
+
   // ... (getImageUrl waghaira same rahega)
 
   // 3. Get Progress
-  getProgress: async () => {
+  getProgress: async (sessionId = 'default_session') => {
     try {
-      const response = await fetch(`${BASE_URL}/progress`);
+      const response = await fetch(`${BASE_URL}/progress/${encodeURIComponent(sessionId)}`);
       return await response.json();
     } catch (e) {
       return { progress: 0, status: 'Connecting...' };
