@@ -12,7 +12,7 @@ from rdkit import Chem
 
 # Modules
 from modules.ai_model import load_ai_model, DEVICE
-from modules.chemistry import get_protein_sequence, process_data_object, get_smiles_from_input, get_pharmacophore_data
+from modules.chemistry import get_protein_sequence, process_data_object, get_smiles_from_input, get_pharmacophore_data, generate_molecular_fingerprints
 from modules.database import get_all_drugs
 from modules.admet import calculate_admet_properties
 from modules.utils import calculate_confidence, calculate_repurposing_score
@@ -79,6 +79,13 @@ async def run_analysis_task(task_id: str, request: DrugAnalysisRequest):
             confidence_val = calculate_confidence(score, threshold=7.5)
             pharmacophore_data = get_pharmacophore_data(mol)
 
+            # Molecular Fingerprint Extraction (Scikit-learn + RDKit)
+            fingerprint_data = generate_molecular_fingerprints(mol)
+            # Sanitize: remove numpy arrays before JSON serialization
+            fingerprint_json = None
+            if fingerprint_data:
+                fingerprint_json = {k: v for k, v in fingerprint_data.items() if not k.startswith('_')}
+
             # ✅ FIX: Correct AI Call using the new class method
             drug_data_for_ai = {
                 "name": display_name,
@@ -100,6 +107,7 @@ async def run_analysis_task(task_id: str, request: DrugAnalysisRequest):
                 "color": "#00f3ff" if status == "ACTIVE" else "#ff0055",
                 "admet": admet_data,
                 "active_sites": pharmacophore_data,
+                "fingerprints": fingerprint_json,
                 "ai_explanation": ai_explanation
             }
             update_progress(task_id, current=1, status="Done", result=result)
@@ -142,14 +150,28 @@ async def run_analysis_task(task_id: str, request: DrugAnalysisRequest):
 
             for idx, score_val in zip(valid_indices, all_scores):
                 final_score = round(max(4.0, min(12.0, score_val)), 2)
+                
+                # Generate ADMET + Fingerprints for active leads
+                drug_admet = None
+                drug_fingerprints = None
+                if final_score > 7.5:
+                    drug_mol = Chem.MolFromSmiles(all_drugs[idx]['smiles'])
+                    if drug_mol:
+                        drug_admet = calculate_admet_properties(drug_mol)
+                        fp_raw = generate_molecular_fingerprints(drug_mol)
+                        if fp_raw:
+                            drug_fingerprints = {k: v for k, v in fp_raw.items() if not k.startswith('_')}
+                
                 results.append({
                     "name": all_drugs[idx]["name"],
                     "smiles": all_drugs[idx]["smiles"],
                     "score": final_score,
                     "confidence": calculate_confidence(final_score),
-                    "repurposing_score": calculate_repurposing_score(final_score),
+                    "repurposing_score": calculate_repurposing_score(final_score, drug_admet),
                     "status": "ACTIVE" if final_score > 7.5 else "INACTIVE",
-                    "color": "#00f3ff" if final_score > 7.5 else "#ff0055"
+                    "color": "#00f3ff" if final_score > 7.5 else "#ff0055",
+                    "admet": drug_admet,
+                    "fingerprints": drug_fingerprints
                 })
                 
             results.sort(key=lambda x: x["score"], reverse=True)
@@ -233,22 +255,28 @@ async def run_upload_task(task_id: str, target_id: str, contents: bytes, filenam
             row = drugs_data[idx]
             
             admet_data = {}
-            active_sites = [] 
+            active_sites = []
+            fingerprint_json = None
 
             if final_score > 7.5:
                 mol = Chem.MolFromSmiles(row['smiles'])
                 admet_data = calculate_admet_properties(mol)
                 active_sites = get_pharmacophore_data(mol)
+                fp_raw = generate_molecular_fingerprints(mol)
+                if fp_raw:
+                    fingerprint_json = {k: v for k, v in fp_raw.items() if not k.startswith('_')}
 
             results.append({
                 "name": str(row['name']),
                 "smiles": str(row['smiles']),
                 "score": final_score,
                 "confidence": calculate_confidence(final_score),
+                "repurposing_score": calculate_repurposing_score(final_score, admet_data if admet_data else None),
                 "status": "ACTIVE" if final_score > 7.5 else "INACTIVE",
                 "color": "#00f3ff" if final_score > 7.5 else "#ff0055",
                 "admet": admet_data,
-                "active_sites": active_sites 
+                "active_sites": active_sites,
+                "fingerprints": fingerprint_json
             })
 
         results.sort(key=lambda x: x["score"], reverse=True)

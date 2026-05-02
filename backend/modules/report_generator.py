@@ -80,11 +80,43 @@ def generate_pdf(data):
             ('PADDING', (0, 0), (-1, -1), 8),
         ]))
         elements.append(t2)
+        elements.append(Spacer(1, 15))
+
+        # ADMET Detailed Profile
+        elements.append(Paragraph("3. ADMET PHARMACOKINETICS", header_style))
+        
+        admet_detail = [
+            ["Category", "Property", "Value"],
+            ["Absorption", "Caco-2 Permeability", admet.get('caco2_permeability', 'N/A')],
+            ["Absorption", "Intestinal Absorption", admet.get('intestinal_absorption', 'N/A')],
+            ["Absorption", "Oral Bioavailability", admet.get('oral_bioavailability', 'N/A')],
+            ["Distribution", "BBB Penetration", admet.get('bbb', 'N/A')],
+            ["Distribution", "Plasma Protein Binding", admet.get('ppb', 'N/A')],
+            ["Metabolism", "CYP450 Substrate", admet.get('cyp_substrate', 'N/A')],
+            ["Metabolism", "Metabolic Stability", admet.get('metabolism_stability', 'N/A')],
+            ["Excretion", "Clearance Route", admet.get('clearance_route', 'N/A')],
+            ["Excretion", "Half-life", admet.get('half_life', 'N/A')],
+            ["Toxicity", "hERG Cardiotoxicity", admet.get('herg_risk', 'N/A')],
+            ["Toxicity", "Hepatotoxicity", admet.get('hepatotoxicity', 'N/A')],
+        ]
+
+        t3 = Table(admet_detail, colWidths=[100, 160, 190])
+        t3.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#0055aa")),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('BACKGROUND', (0, 1), (0, -1), colors.whitesmoke),
+            ('TEXTCOLOR', (0, 1), (0, -1), colors.gray),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
+            ('PADDING', (0, 0), (-1, -1), 6),
+            ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ]))
+        elements.append(t3)
 
     elements.append(Spacer(1, 30))
 
     # --- 5. Chemical Structure (Image + Code) ---
-    elements.append(Paragraph("3. CHEMICAL STRUCTURE", header_style))
+    elements.append(Paragraph("4. CHEMICAL STRUCTURE", header_style))
     
     smiles_text = data.get('smiles', '')
 

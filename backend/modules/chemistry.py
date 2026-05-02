@@ -1,11 +1,14 @@
 import torch
 import httpx
+import numpy as np
 import pubchempy as pcp
 from rdkit import Chem
-from rdkit.Chem import ChemicalFeatures
+from rdkit.Chem import ChemicalFeatures, AllChem, DataStructs
 from rdkit import RDConfig
 import os
 from torch_geometric.data import Data
+from sklearn.preprocessing import normalize as sklearn_normalize
+from sklearn.metrics.pairwise import cosine_similarity
 
 ATOM_DICT = {'C':0, 'N':1, 'O':2, 'S':3, 'F':4, 'Cl':5, 'Br':6, 'I':7, 'P':8, 'Unknown':9} 
 AMINO_DICT = {aa: i for i, aa in enumerate("ACDEFGHIKLMNPQRSTVWY")}
@@ -132,3 +135,86 @@ def process_data_object(smiles, protein_seq, max_len=1000):
     except Exception as e:
         print(f"⚠️ Process Data Object Error for SMILES {smiles}: {e}")
         return None
+
+
+# ═══════════════════════════════════════════════════════════════
+# MOLECULAR FINGERPRINT EXTRACTION (Scikit-learn + RDKit)
+# Poster Reference: "Scikit-learn to process molecular fingerprints"
+# ═══════════════════════════════════════════════════════════════
+
+def generate_molecular_fingerprints(mol, radius=2, n_bits=2048):
+    """
+    Generates Morgan (ECFP4) and MACCS fingerprints using RDKit.
+    Returns a dictionary with fingerprint vectors and metadata.
+    Uses Scikit-learn's normalize for L2 normalization of feature vectors.
+    """
+    if not mol:
+        return None
+    
+    try:
+        # 1. Morgan Fingerprint (ECFP4) — Circular fingerprint
+        morgan_fp = AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=n_bits)
+        morgan_arr = np.zeros(n_bits, dtype=np.float32)
+        DataStructs.ConvertToNumpyArray(morgan_fp, morgan_arr)
+        
+        # 2. MACCS Keys — Structural keys fingerprint (166 bits)
+        maccs_fp = AllChem.GetMACCSKeysFingerprint(mol)
+        maccs_arr = np.zeros(167, dtype=np.float32)
+        DataStructs.ConvertToNumpyArray(maccs_fp, maccs_arr)
+        
+        # 3. Scikit-learn L2 Normalization of fingerprint vectors
+        morgan_normalized = sklearn_normalize(morgan_arr.reshape(1, -1), norm='l2')[0]
+        maccs_normalized = sklearn_normalize(maccs_arr.reshape(1, -1), norm='l2')[0]
+        
+        # 4. Bit density (how many bits are set — indicates molecular complexity)
+        morgan_density = round(float(morgan_arr.sum()) / n_bits, 4)
+        maccs_density = round(float(maccs_arr.sum()) / 167, 4)
+        
+        return {
+            "morgan_bits_set": int(morgan_arr.sum()),
+            "morgan_total_bits": n_bits,
+            "morgan_density": morgan_density,
+            "maccs_bits_set": int(maccs_arr.sum()),
+            "maccs_density": maccs_density,
+            "fingerprint_type": "ECFP4 (Morgan r=2)",
+            # Store raw arrays for similarity calculations (not sent to frontend)
+            "_morgan_vector": morgan_normalized,
+            "_maccs_vector": maccs_normalized,
+        }
+    except Exception as e:
+        print(f"⚠️ Fingerprint Generation Error: {e}")
+        return None
+
+
+def calculate_fingerprint_similarity(mol1, mol2):
+    """
+    Calculates molecular similarity between two molecules using 
+    Scikit-learn's cosine_similarity on Morgan fingerprints.
+    Returns Tanimoto and Cosine similarity scores.
+    """
+    if not mol1 or not mol2:
+        return None
+    
+    try:
+        # Generate Morgan fingerprints for both molecules
+        fp1 = AllChem.GetMorganFingerprintAsBitVect(mol1, 2, nBits=2048)
+        fp2 = AllChem.GetMorganFingerprintAsBitVect(mol2, 2, nBits=2048)
+        
+        # RDKit Tanimoto similarity
+        tanimoto = DataStructs.TanimotoSimilarity(fp1, fp2)
+        
+        # Scikit-learn Cosine similarity
+        arr1 = np.zeros(2048, dtype=np.float32)
+        arr2 = np.zeros(2048, dtype=np.float32)
+        DataStructs.ConvertToNumpyArray(fp1, arr1)
+        DataStructs.ConvertToNumpyArray(fp2, arr2)
+        
+        cosine_sim = cosine_similarity(arr1.reshape(1, -1), arr2.reshape(1, -1))[0][0]
+        
+        return {
+            "tanimoto": round(float(tanimoto), 4),
+            "cosine": round(float(cosine_sim), 4),
+        }
+    except Exception as e:
+        print(f"⚠️ Similarity Calculation Error: {e}")
+        return None

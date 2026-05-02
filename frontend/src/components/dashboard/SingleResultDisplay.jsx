@@ -134,6 +134,7 @@ export default function SingleResultDisplay({ result, chatHistory, setChatHistor
               className="admet-inner-grid"
               style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', width: '100%', justifyContent: 'center' }}
             >
+              {/* Radar Chart */}
               <div style={{ flex: '1.2', minWidth: '320px', background: 'var(--bg-surface)', padding: '24px', borderRadius: '24px', border: '1px solid var(--border-default)', minHeight: '420px', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--text-primary)', fontWeight: 700, fontSize: '14px' }}>
                   <Activity size={18} color="var(--accent)" /> ADMET Pharmacokinetics Radar
@@ -143,24 +144,155 @@ export default function SingleResultDisplay({ result, chatHistory, setChatHistor
                 </div>
               </div>
               
-              <div style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div style={{ background: 'var(--bg-surface)', padding: '24px', borderRadius: '20px', border: '1px solid var(--border-default)', position: 'relative', overflow: 'hidden' }}>
+              {/* ADMET Detail Cards */}
+              <div style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+                {/* Lipinski Compliance */}
+                <div style={{ background: 'var(--bg-surface)', padding: '20px 24px', borderRadius: '20px', border: '1px solid var(--border-default)', position: 'relative', overflow: 'hidden' }}>
                   <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: result.admet?.lipinski ? 'var(--status-success)' : 'var(--status-error)' }} />
-                  <h4 style={{ margin: '0 0 10px 0', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Lipinski Compliance</h4>
-                  <div style={{ fontSize: '24px', fontWeight: 900, color: result.admet?.lipinski ? 'var(--status-success)' : 'var(--status-error)', letterSpacing: '1px' }}>
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Lipinski Compliance</h4>
+                  <div style={{ fontSize: '22px', fontWeight: 900, color: result.admet?.lipinski ? 'var(--status-success)' : 'var(--status-error)', letterSpacing: '1px' }}>
                     {result.admet?.lipinski ? 'PASSED' : 'FAILED'}
                   </div>
-                  <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>Rules for drug-likeness & oral bioavailability</p>
+                  <p style={{ margin: '6px 0 0 0', fontSize: '11px', color: 'var(--text-secondary)' }}>Rule of 5 — {result.admet?.violations || 0} violation(s)</p>
                 </div>
-                
-                <div style={{ background: 'var(--bg-surface)', padding: '24px', borderRadius: '20px', border: '1px solid var(--border-default)', position: 'relative', overflow: 'hidden' }}>
-                  <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: 'var(--accent)' }} />
-                  <h4 style={{ margin: '0 0 10px 0', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Blood-Brain Barrier (BBB)</h4>
-                  <div style={{ fontSize: '24px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '1px' }}>
-                    {result.admet?.bbb || 'High Penetrance'}
+
+                {/* Absorption */}
+                <div style={{ background: 'var(--bg-surface)', padding: '20px 24px', borderRadius: '20px', border: '1px solid var(--border-default)', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: result.admet?.caco2_permeability === 'High' ? '#10b981' : result.admet?.caco2_permeability === 'Moderate' ? '#f59e0b' : '#ef4444' }} />
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '10px', background: 'rgba(99,102,241,0.15)', color: 'var(--accent)', padding: '2px 6px', borderRadius: '4px', fontWeight: 800 }}>A</span>
+                    Absorption
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>Caco-2 Permeability</div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{result.admet?.caco2_permeability || '—'}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>Intestinal Absorption</div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{result.admet?.intestinal_absorption || '—'}</div>
+                    </div>
+                    <div style={{ gridColumn: 'span 2' }}>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>Oral Bioavailability</div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: result.admet?.oral_bioavailability === 'Good' ? '#10b981' : '#ef4444' }}>{result.admet?.oral_bioavailability || '—'}</div>
+                    </div>
                   </div>
-                  <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>Central Nervous System permeability index</p>
                 </div>
+
+                {/* Distribution */}
+                <div style={{ background: 'var(--bg-surface)', padding: '20px 24px', borderRadius: '20px', border: '1px solid var(--border-default)', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: result.admet?.bbb === 'High Penetrance' ? '#6366f1' : result.admet?.bbb === 'Moderate Penetrance' ? '#f59e0b' : '#ef4444' }} />
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '10px', background: 'rgba(99,102,241,0.15)', color: 'var(--accent)', padding: '2px 6px', borderRadius: '4px', fontWeight: 800 }}>D</span>
+                    Distribution
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>BBB Penetration</div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{result.admet?.bbb || '—'}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>Plasma Protein Binding</div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{result.admet?.ppb || '—'}</div>
+                    </div>
+                    <div style={{ gridColumn: 'span 2' }}>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>Volume of Distribution</div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{result.admet?.vd_estimate || '—'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Metabolism */}
+                <div style={{ background: 'var(--bg-surface)', padding: '20px 24px', borderRadius: '20px', border: '1px solid var(--border-default)', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: result.admet?.metabolism_stability === 'High' ? '#10b981' : result.admet?.metabolism_stability === 'Moderate' ? '#f59e0b' : '#ef4444' }} />
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '10px', background: 'rgba(99,102,241,0.15)', color: 'var(--accent)', padding: '2px 6px', borderRadius: '4px', fontWeight: 800 }}>M</span>
+                    Metabolism
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>CYP450 Substrate</div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{result.admet?.cyp_substrate || '—'}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>Metabolic Stability</div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: result.admet?.metabolism_stability === 'High' ? '#10b981' : result.admet?.metabolism_stability === 'Moderate' ? '#f59e0b' : '#ef4444' }}>{result.admet?.metabolism_stability || '—'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Excretion */}
+                <div style={{ background: 'var(--bg-surface)', padding: '20px 24px', borderRadius: '20px', border: '1px solid var(--border-default)', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#8b5cf6' }} />
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '10px', background: 'rgba(99,102,241,0.15)', color: 'var(--accent)', padding: '2px 6px', borderRadius: '4px', fontWeight: 800 }}>E</span>
+                    Excretion
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>Clearance Route</div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{result.admet?.clearance_route || '—'}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>Half-life</div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>{result.admet?.half_life || '—'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Toxicity */}
+                <div style={{ background: 'var(--bg-surface)', padding: '20px 24px', borderRadius: '20px', border: '1px solid var(--border-default)', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: result.admet?.herg_risk === 'Low Risk' ? '#10b981' : result.admet?.herg_risk === 'Moderate Risk' ? '#f59e0b' : '#ef4444' }} />
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '10px', background: 'rgba(239,68,68,0.15)', color: '#ef4444', padding: '2px 6px', borderRadius: '4px', fontWeight: 800 }}>T</span>
+                    Toxicity
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>hERG Cardiotoxicity</div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: result.admet?.herg_risk === 'Low Risk' ? '#10b981' : result.admet?.herg_risk === 'Moderate Risk' ? '#f59e0b' : '#ef4444' }}>{result.admet?.herg_risk || '—'}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>Hepatotoxicity (DILI)</div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: result.admet?.hepatotoxicity === 'Low Risk' ? '#10b981' : result.admet?.hepatotoxicity === 'Moderate Risk' ? '#f59e0b' : '#ef4444' }}>{result.admet?.hepatotoxicity || '—'}</div>
+                    </div>
+                    <div style={{ gridColumn: 'span 2' }}>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>AMES Mutagenicity</div>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: result.admet?.ames_mutagenicity === 'Low Risk' ? '#10b981' : '#f59e0b' }}>{result.admet?.ames_mutagenicity || '—'}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Molecular Fingerprints (Scikit-learn) */}
+                {result.fingerprints && (
+                  <div style={{ background: 'var(--bg-surface)', padding: '20px 24px', borderRadius: '20px', border: '1px solid var(--border-default)', position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ position: 'absolute', top: 0, left: 0, width: '4px', height: '100%', background: '#06b6d4' }} />
+                    <h4 style={{ margin: '0 0 8px 0', fontSize: '11px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Zap size={12} color="#06b6d4" />
+                      Molecular Fingerprints
+                      <span style={{ fontSize: '9px', background: 'rgba(6,182,212,0.15)', color: '#06b6d4', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>Scikit-learn</span>
+                    </h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>Type</div>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>{result.fingerprints.fingerprint_type}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>Morgan Bits Set</div>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>{result.fingerprints.morgan_bits_set} / {result.fingerprints.morgan_total_bits}</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>Morgan Density</div>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>{(result.fingerprints.morgan_density * 100).toFixed(1)}%</div>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '2px' }}>MACCS Density</div>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>{(result.fingerprints.maccs_density * 100).toFixed(1)}%</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
