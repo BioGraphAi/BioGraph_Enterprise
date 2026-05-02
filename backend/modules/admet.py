@@ -1,6 +1,6 @@
 # File: backend/modules/admet.py
 
-from rdkit.Chem import Descriptors, Lipinski, QED
+from rdkit.Chem import Descriptors, Lipinski, QED, rdMolDescriptors
 
 def calculate_admet_properties(mol):
     """
@@ -17,6 +17,7 @@ def calculate_admet_properties(mol):
     hba = Lipinski.NumHAcceptors(mol)
     tpsa = Descriptors.TPSA(mol)
     rotatable_bonds = Lipinski.NumRotatableBonds(mol)
+    formula = rdMolDescriptors.CalcMolFormula(mol)
 
     # 2. Lipinski Rule of 5 Validation
     violations = 0
@@ -41,5 +42,6 @@ def calculate_admet_properties(mol):
         "rotatable_bonds": rotatable_bonds, # Flexibility
         "violations": violations,       # Rule of 5 Failures
         "qed": round(qed_score, 2),     # Quality Score
-        "is_safe": is_safe              # Final Safety Verdict
+        "is_safe": is_safe,             # Final Safety Verdict
+        "formula": formula              # Chemical Formula
     }

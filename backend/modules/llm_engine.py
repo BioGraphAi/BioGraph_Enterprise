@@ -113,5 +113,38 @@ class LLMEngine:
         context = f"Research Context: Molecule {context_data.get('name')} (SMILES: {context_data.get('smiles')}). Previous Score: {context_data.get('score')}.\nUser Question: {user_query}"
         return self._get_response(context)
 
+    def summarize_paper(self, abstract_or_url):
+        """
+        Summarizes biomedical research papers/abstracts.
+        Returns structured JSON with key findings, relevance, and keywords.
+        """
+        task = """
+        You are BioGraph AI, an expert biomedical research analyst.
+        A researcher has provided a scientific paper abstract or text.
+        
+        Provide a structured JSON summary:
+        {
+          "title_guess": "Inferred paper title if not provided",
+          "key_findings": "2-3 most important scientific findings",
+          "drug_targets": "Any drug targets, proteins, or diseases mentioned",
+          "methodology": "Research methods used (ML, clinical trial, etc.)",
+          "relevance": "How this relates to drug repurposing or biomedical AI",
+          "keywords": ["keyword1", "keyword2", "keyword3"]
+        }
+        Return ONLY valid JSON. No text outside the JSON block.
+        
+        Paper/Abstract to analyze:\n""" + abstract_or_url
+        
+        response_text = self._get_response(task)
+        try:
+            cleaned = response_text.strip()
+            if "```json" in cleaned:
+                cleaned = cleaned.split("```json")[1].split("```")[0].strip()
+            elif "```" in cleaned:
+                cleaned = cleaned.split("```")[1].split("```")[0].strip()
+            return json.loads(cleaned)
+        except Exception:
+            return {"key_findings": response_text, "error": "Structured parsing failed"}
+
 # Initialize global instance
 llm_bot = LLMEngine()

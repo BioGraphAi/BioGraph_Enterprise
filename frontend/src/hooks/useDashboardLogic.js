@@ -10,6 +10,7 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
   const [progress, setProgress] = useState(0);
   const [progressDetail, setProgressDetail] = useState({ current: 0, total: 0, status: '' });
   const [result, setResult] = useState(null);
+  const [showForm, setShowForm] = useState(true); // ✅ Controls form vs result view
   const [batchResults, setBatchResults] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -65,11 +66,12 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
 
   // --- 4. HANDLERS ---
   const handleTabChange = (tabName) => {
-    setActiveTab(tabName); 
-    setResult(null); 
-    setBatchResults([]); 
+    setActiveTab(tabName);
+    setResult(null);
+    setBatchResults([]);
     setSelectedId(null);
-    setChatHistory([]); 
+    setChatHistory([]);
+    setShowForm(true); // ✅ Reset to form on tab change
     if (!isSidebarOpen) setIsSidebarOpen(true);
   };
 
@@ -106,13 +108,14 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
     if (activeTab === 'manual' && !safeSmiles) return showToast("Enter SMILES!", "error");
     if (activeTab === 'upload' && !selectedFile) return showToast("Select a file!", "error");
 
-    setLoading(true); 
-    setProgress(0); 
-    setResult(null); 
-    setBatchResults([]); 
+    setLoading(true);
+    setProgress(0);
+    setResult(null);       // ✅ Clear old result only when NEW scan starts
+    setBatchResults([]);
     setSelectedId(null);
     setChatHistory([]);
     setResultActiveTab('intelligence');
+    setShowForm(false);    // ✅ Will show result when done
     
     let progressInterval = null;
 
@@ -203,6 +206,7 @@ export const useDashboardLogic = (showToast, historyLoadData) => {
     smiles, setSmiles,
     loading, progress, progressDetail,
     result, setResult,
+    showForm, setShowForm,   // ✅ Export form visibility toggle
     batchResults,
     selectedId,
     isSidebarOpen, setIsSidebarOpen,

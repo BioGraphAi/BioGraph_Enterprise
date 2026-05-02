@@ -60,12 +60,11 @@ export default function AiExplanation({ result }) {
 
       {/* Scrollable Content */}
       <div className="custom-scroll" style={{ flex: 1, width: '100%', overflowY: 'auto', paddingRight: '4px' }}>
-        {displayedData.summary    && <Section icon={FileText}    title="Executive Summary"       content={displayedData.summary}                                       />}
-        {displayedData.mechanism  && <Section icon={Activity}    title="Mechanism of Action"     content={displayedData.mechanism}                                     />}
-        {displayedData.safety_analysis && <Section icon={Shield} title="Safety Profile (ADMET)"  content={displayedData.safety_analysis}                               />}
-        {(displayedData.conclusion || displayedData.clinical_potential) && (
-          <Section icon={Target} title="Final Verdict" content={displayedData.conclusion || displayedData.clinical_potential} />
-        )}
+        {displayedData.summary      && <Section icon={FileText}  title="Executive Summary"       content={displayedData.summary}                                                       />}
+        {displayedData.mechanism    && <Section icon={Activity}  title="Mechanism of Action"     content={displayedData.mechanism}                                                     />}
+        {(displayedData.safety_analysis || displayedData.safety) && <Section icon={Shield} title="Safety Profile (ADMET)"  content={displayedData.safety_analysis || displayedData.safety}  />}
+        {(displayedData.clinical || displayedData.clinical_potential) && <Section icon={Target} title="Clinical Implications" content={displayedData.clinical || displayedData.clinical_potential} />}
+        {(displayedData.conclusion)  && <Section icon={Target}   title="Final Verdict"           content={displayedData.conclusion}                                                    />}
       </div>
 
       <style>{`

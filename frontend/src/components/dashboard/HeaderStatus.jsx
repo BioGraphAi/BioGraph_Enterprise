@@ -9,6 +9,8 @@ export default function HeaderStatus({
   return (
     <div style={{
       height: '54px',
+      width: '100%',
+      boxSizing: 'border-box',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',

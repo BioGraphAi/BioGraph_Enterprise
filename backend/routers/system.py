@@ -2,11 +2,13 @@ import psutil
 import platform
 import torch
 from fastapi import APIRouter, Response
+from pydantic import BaseModel
 from rdkit.Chem import Draw
 from urllib.parse import unquote
 from modules.chemistry import get_smiles_from_input
 from modules.state import get_progress
 from modules.logger import logger
+from modules.llm_engine import llm_bot
 
 router = APIRouter()
 
@@ -84,3 +86,20 @@ def get_molecule_image(smiles: str):
     except Exception as e:
         logger.error(f"Image generation error: {e}")
         return Response(content=str(e), status_code=400)
+
+
+# ── Research Paper Summarizer (Intelligence Layer) ──
+class PaperSummarizeRequest(BaseModel):
+    abstract: str
+
+@router.post("/summarize_paper")
+def summarize_paper(request: PaperSummarizeRequest):
+    """
+    Summarize a biomedical research paper abstract using the LLM Intelligence Layer.
+    Returns: title_guess, key_findings, drug_targets, methodology, relevance, keywords.
+    """
+    if not request.abstract or len(request.abstract.strip()) < 20:
+        return {"error": "Please provide a valid abstract or paper text."}
+    
+    result = llm_bot.summarize_paper(request.abstract)
+    return result

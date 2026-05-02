@@ -15,7 +15,7 @@ from modules.ai_model import load_ai_model, DEVICE
 from modules.chemistry import get_protein_sequence, process_data_object, get_smiles_from_input, get_pharmacophore_data
 from modules.database import get_all_drugs
 from modules.admet import calculate_admet_properties
-from modules.utils import calculate_confidence
+from modules.utils import calculate_confidence, calculate_repurposing_score
 from modules.state import update_progress, get_progress
 # ✅ FIX: Import correct instance
 from modules.llm_engine import llm_bot 
@@ -89,12 +89,14 @@ async def run_analysis_task(task_id: str, request: DrugAnalysisRequest):
             }
             ai_explanation = llm_bot.analyze_drug(drug_data_for_ai, request.target_id)
 
+            repurposing_score = calculate_repurposing_score(score, admet_data)
             result = {
                 "name": display_name,
                 "smiles": real_smiles,
                 "score": score,
                 "status": status,
                 "confidence": confidence_val,
+                "repurposing_score": repurposing_score,
                 "color": "#00f3ff" if status == "ACTIVE" else "#ff0055",
                 "admet": admet_data,
                 "active_sites": pharmacophore_data,
@@ -145,6 +147,7 @@ async def run_analysis_task(task_id: str, request: DrugAnalysisRequest):
                     "smiles": all_drugs[idx]["smiles"],
                     "score": final_score,
                     "confidence": calculate_confidence(final_score),
+                    "repurposing_score": calculate_repurposing_score(final_score),
                     "status": "ACTIVE" if final_score > 7.5 else "INACTIVE",
                     "color": "#00f3ff" if final_score > 7.5 else "#ff0055"
                 })

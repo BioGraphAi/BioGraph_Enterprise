@@ -72,7 +72,7 @@ export default function ProteinViewer({ pdbId, onClose, isEmbedded = false }) {
   const capture = () => { if (viewer.current) { const a = document.createElement('a'); a.href = viewer.current.pngURI(); a.download = `${pdbId}.png`; a.click(); } };
 
   const content = (
-    <div className={`viewer-modal ${isEmbedded ? 'embedded' : ''}`} style={isEmbedded ? { width: '100%', height: '100%', borderRadius: 0, border: 'none', boxShadow: 'none' } : {}}>
+    <div className={`viewer-modal ${isEmbedded ? 'embedded' : ''}`} style={isEmbedded ? { width: '100%', height: '100%', borderRadius: 0, border: 'none', boxShadow: 'none', margin: 0, padding: 0 } : {}}>
       {/* Canvas Area */}
       <div className="viewer-canvas-wrap">
         {loading && <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', color: 'var(--text-muted)' }}><Loader className="spin-loader" size={28} /></div>}

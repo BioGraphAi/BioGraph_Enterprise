@@ -134,15 +134,26 @@
     padding-bottom: 0 !important;
   }
   
-  body:has(.result-sidebar) .glass-panel.panel-right {
-    width: calc(100vw - 64px) !important;
-    flex: none !important;
-  }
-
   /* ── Discovery dashboard padding ── */
   .discovery-dashboard {
     padding: 20px 16px !important;
     max-width: 100% !important;
+  }
+
+  /* ── About Page Responsiveness ── */
+  .about-page-content {
+    width: 95% !important;
+    padding: 32px 20px !important;
+    margin: 20px auto !important;
+  }
+
+  .about-page-content span[style*="font-size: 42px"] {
+    font-size: clamp(28px, 8vw, 42px) !important;
+  }
+
+  .about-page-content span[style*="font-size: 14px"] {
+    font-size: clamp(11px, 3vw, 13px) !important;
+    text-align: center;
   }
 
   /* ── Manual mode grid: single column ── */
@@ -249,6 +260,44 @@
   }
   .cyber-input {
     font-size: 16px !important; /* Prevents iOS zoom */
+  }
+
+  /* ── Back-bar & View-Result banner ── */
+  .back-bar,
+  .view-result-banner {
+    flex-wrap: wrap !important;
+    padding: 6px 12px !important;
+    gap: 6px !important;
+  }
+  .back-bar span,
+  .view-result-banner span {
+    font-size: 11px !important;
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+
+  /* ── Batch view-toggle bar ── */
+  .batch-toggle-bar {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    padding: 8px 12px !important;
+  }
+
+  /* ── Research paper textarea on mobile ── */
+  .intelligence-hub-inner textarea {
+    font-size: 14px !important;
+  }
+
+  /* ── Digital Lab Card & ADMET Grid Responsive ── */
+  .admet-inner-grid {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 20px !important;
+  }
+  .admet-inner-grid > div {
+    width: 100% !important;
+    min-width: unset !important;
   }
 }
 
